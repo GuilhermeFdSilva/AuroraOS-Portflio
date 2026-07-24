@@ -3,7 +3,9 @@ import { Calendar } from "./calendar/calendar.js";
 import { Task } from "../task/task.js";
 
 export class Taskbar {
-    static #taskbar = null;
+    static #instance = null;
+    static #context = null;
+    static #taskbarTemplateCache = null;
     static #taskButtons = new Map();
     static #taskObserverConfigured = false;
 
@@ -11,38 +13,47 @@ export class Taskbar {
         throw new Error("Taskbar is a static class and cannot be instantiated.");
     }
 
-    static getTaskbar() {
-        if (Taskbar.#taskbar) {
-            return Taskbar.#taskbar;
+    static async getTaskbar(container) {
+        if (Taskbar.#instance) {
+            return Taskbar.#instance;
         }
 
-        Taskbar.#taskbar = Taskbar.#loadTaskbar();
+        if (!(container instanceof HTMLElement)) {
+            throw new TypeError("A valid taskbar container is required.");
+        }
 
-        return Taskbar.#taskbar;
-    }
-
-    static async #loadTaskbarTemplate() {
-        const response = await fetch("./components/taskbar/taskbar.html");
-        return response.text();
-    }
-
-    static async #loadTaskbar() {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = await Taskbar.#loadTaskbarTemplate();
 
-        const taskbar = wrapper.firstElementChild;
-        const clock = taskbar.querySelector("#taskbar-clock");
-        const taskContainer = taskbar.querySelector("#taskbar-apps");
-        const startButton = taskbar.querySelector("#taskbar-start-button");
-        const calendarButton = taskbar.querySelector("#taskbar-calendar-button");
+        Taskbar.#context = container;
+        Taskbar.#instance = wrapper.firstElementChild;
+
+        const clock = Taskbar.#instance.querySelector("#taskbar-clock");
+        const taskContainer = Taskbar.#instance.querySelector("#taskbar-apps");
 
         Taskbar.#updateTime(clock);
         Taskbar.#configureTaskObserver(taskContainer);
 
-        taskbar.appendChild(await StartMenu.configInstance(startButton));
-        taskbar.appendChild(await Calendar.configureInstance(calendarButton));
+        const startButton = Taskbar.#instance.querySelector("#taskbar-start-button");
+        const calendarButton = Taskbar.#instance.querySelector("#taskbar-calendar-button");
 
-        return taskbar;
+        Taskbar.#instance.appendChild(await StartMenu.configInstance(startButton));
+        Taskbar.#instance.appendChild(await Calendar.configureInstance(calendarButton));
+
+        Taskbar.#context.appendChild(Taskbar.#instance);
+
+        return Taskbar.#instance;
+    }
+
+    static async #loadTaskbarTemplate() {
+        if (Taskbar.#taskbarTemplateCache) {
+            return Taskbar.#taskbarTemplateCache;
+        }
+
+        const response = await fetch("./components/taskbar/taskbar.html");
+        Taskbar.#taskbarTemplateCache = await response.text();
+
+        return Taskbar.#taskbarTemplateCache;
     }
 
     static #configureTaskObserver(taskContainer) {

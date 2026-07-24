@@ -8,12 +8,14 @@ import { Desktop } from "../components/desktop/desktop.js";
 
 Viewport.configure();
 
-const bootContainer = document.getElementById("boot-container");
-const sessionContainer = document.getElementById("session-container");
+const bootElement = document.getElementById("boot-container");
+const sessionElement = document.getElementById("session-container");
 const desktopElement = document.getElementById("desktop");
+const taskbarElement = document.getElementById("taskbar");
 
-const sysBoot = await SysBoot.getSysBoot(bootContainer);
-await SessionScreem.getSessionScreem(sessionContainer);
+const sysBoot = await SysBoot.getSysBoot(bootElement);
+const sessionScreem = await SessionScreem.getSessionScreem(sessionElement);
+const taskbar = await Taskbar.getTaskbar(taskbarElement);
 
 const openApplicationWindow = ({ title, iconSrc }) => {
     new Window(desktopElement, {
@@ -70,6 +72,3 @@ new Desktop(desktopElement, {
 });
 
 sysBoot.startBoot();
-
-const taskbar = await Taskbar.getTaskbar();
-document.getElementById("taskbar").appendChild(taskbar);
