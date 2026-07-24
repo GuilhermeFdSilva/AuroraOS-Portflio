@@ -1,11 +1,13 @@
+/**
+ * Ajusta valores globais para responsividade.
+ */
 export class Viewport {
     static #resizeFrame = null;
     static #isConfigured = false;
 
-    constructor() {
-        throw new Error("Viewport is a static utility class and cannot be instantiated.");
-    }
-
+    /**
+     * Configura os listeners que ajustam o as variáveis do tamnaho de tela, para a responsividade do site.
+     */
     static configure() {
         if (Viewport.#isConfigured) {
             return;
@@ -20,6 +22,9 @@ export class Viewport {
         window.visualViewport?.addEventListener("scroll", Viewport.#scheduleUpdate, { passive: true });
     }
 
+    /**
+     * Agenda a atualização das variáveis da viewport para o próximo repaint, cancelando qualquer atualização pendente.
+     */
     static #scheduleUpdate = () => {
         if (Viewport.#resizeFrame !== null) {
             cancelAnimationFrame(Viewport.#resizeFrame);
@@ -31,6 +36,9 @@ export class Viewport {
         });
     };
 
+    /**
+     * Obtem os valores de tamanho da janela atual para injetar nas variáveis globais do CSS
+     */
     static #updateSize() {
         const visualViewport = window.visualViewport;
         const viewportHeight = visualViewport?.height ?? window.innerHeight;

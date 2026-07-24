@@ -1,8 +1,7 @@
 /**
  * Centraliza o acesso ao localStorage da aplicação.
  *
- * Todos os valores são serializados em JSON e recebem um prefixo para evitar
- * colisões com dados de outras aplicações executadas no mesmo domínio.
+ * Todos os valores são serializados em JSON e recebem um prefixo para evitar conflitos.
  */
 export class LocalStorageManager {
     static #prefix = "aurora-os";

@@ -2,10 +2,6 @@ import { Task } from "../task/task.js";
 
 /**
  * Representa uma janela de aplicação.
- *
- * Diferentemente de Dialog, esta classe possui os controles de minimizar,
- * maximizar/restaurar e fechar, além de carregar o conteúdo da aplicação
- * a partir de um arquivo HTML informado em `contentSrc`.
  */
 export class Window extends Task {
     static #windowTemplateCache = null;
