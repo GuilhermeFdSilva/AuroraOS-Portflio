@@ -1,55 +1,109 @@
 import { LocalStorageManager } from "../../js/storage/localStorageManager.js";
+import { Window } from "../window/window.js";
 
 /**
  * Gerencia os atalhos exibidos na área de trabalho.
- *
- * As posições são armazenadas como índices de quadrantes, e não como pixels.
- * Isso permite que a mesma organização seja recalculada quando a quantidade
- * de colunas muda em telas menores.
  */
 export class Desktop {
     static #storageKey = "desktop.shortcuts.positions";
 
-    #container = null;
-    #shortcutLayer = null;
-    #shortcutConfigs = [];
-    #shortcutElements = new Map();
-    #positions = new Map();
-    #selectedShortcutId = null;
-    #dragState = null;
-    #resizeObserver = null;
-    #lastTouch = {
+    static #shortcuts = {
+        shortcuts: [
+            {
+                id: "notepad",
+                label: "Bloco de notas",
+                iconSrc: "./assets/bloco_de_notas.png",
+                iconAlt: "Bloco de notas",
+                action: () => Desktop.#openApplicationWindow({
+                    title: "Bloco de notas",
+                    iconSrc: "./assets/bloco_de_notas.png"
+                })
+            },
+            {
+                id: "calculator",
+                label: "Calculadora",
+                iconSrc: "./assets/calculadora.png",
+                iconAlt: "Calculadora",
+                action: () => Desktop.#openApplicationWindow({
+                    title: "Calculadora",
+                    iconSrc: "./assets/calculadora.png"
+                })
+            },
+            {
+                id: "resume",
+                label: "Currículo",
+                iconSrc: "./assets/doc.png",
+                iconAlt: "Currículo",
+                action: () => Desktop.#openApplicationWindow({
+                    title: "Currículo",
+                    iconSrc: "./assets/doc.png"
+                })
+            },
+            {
+                id: "projects",
+                label: "Projetos",
+                iconSrc: "./assets/docs.png",
+                iconAlt: "Projetos",
+                action: () => Desktop.#openApplicationWindow({
+                    title: "Projetos",
+                    iconSrc: "./assets/docs.png"
+                })
+            }
+        ]
+    };
+
+    static #shortcutConfigs = [];
+    static #container = null;
+    static #isConfigured = false;
+    static #shortcutLayer = null;
+    static #shortcutElements = new Map();
+    static #positions = new Map();
+    static #selectedShortcutId = null;
+    static #dragState = null;
+    static #resizeObserver = null;
+
+    static #lastTouch = {
         shortcutId: null,
         timestamp: 0
     };
-    #ignoreNextClick = false;
-    #lastPointerType = "mouse";
+
+    static #ignoreNextClick = false;
+    static #lastPointerType = "mouse";
+
+    constructor() {
+        throw new Error(
+            "Desktop is a static class and cannot be instantiated."
+        );
+    }
 
     /**
-     * Cria e posiciona os atalhos dentro do desktop.
+     * Configura e retorna o desktop da aplicação.
      *
-     * @param {HTMLElement} container Elemento principal da área de trabalho.
-     * @param {object} config Configuração do desktop.
-     * @param {Array<object>} config.shortcuts Atalhos que serão renderizados.
+     * @param {HTMLElement} container Elemento principal do desktop.
      */
-    constructor(container, config = {}) {
+    static getDesktop(container) {
         if (!(container instanceof HTMLElement)) {
             throw new TypeError(
-                "Um elemento de desktop válido é obrigatório."
+                "A valid desktop container is required."
             );
         }
 
-        this.#container = container;
-        this.#shortcutConfigs = this.#normalizeShortcutConfigs(
-            config.shortcuts ?? []
-        );
+        if (Desktop.#isConfigured) {
+            return Desktop.#container;
+        }
 
-        this.#createShortcutLayer();
-        this.#restorePositions();
-        this.#renderShortcuts();
-        this.#configureDesktopEvents();
-        this.#configureResizeObserver();
-        this.#layoutShortcuts();
+        Desktop.#isConfigured = true;
+        Desktop.#container = container;
+
+        Desktop.#normalizeShortcutConfigs();
+        Desktop.#createShortcutLayer();
+        Desktop.#restorePositions();
+        Desktop.#renderShortcuts();
+        Desktop.#configureDesktopEvents();
+        Desktop.#configureResizeObserver();
+        Desktop.#layoutShortcuts();
+
+        return Desktop.#container;
     }
 
     /**
@@ -57,36 +111,44 @@ export class Desktop {
      *
      * @returns {Record<string, number>}
      */
-    getShortcutPositions() {
-        return Object.fromEntries(this.#positions);
+    static getShortcutPositions() {
+        return Object.fromEntries(
+            Desktop.#positions
+        );
     }
 
     /**
      * Volta os atalhos para a ordem definida na configuração inicial.
      */
-    resetShortcutPositions() {
-        this.#positions.clear();
+    static resetShortcutPositions() {
+        Desktop.#positions.clear();
 
-        this.#shortcutConfigs.forEach((shortcut, index) => {
-            this.#positions.set(shortcut.id, index);
-        });
+        Desktop.#shortcutConfigs.forEach(
+            (shortcut, index) => {
+                Desktop.#positions.set(
+                    shortcut.id,
+                    index
+                );
+            }
+        );
 
-        this.#savePositions();
-        this.#layoutShortcuts();
-        this.clearSelection();
+        Desktop.#savePositions();
+        Desktop.#layoutShortcuts();
+        Desktop.clearSelection();
     }
 
     /**
      * Remove o destaque de seleção do atalho atual.
      */
-    clearSelection() {
-        if (!this.#selectedShortcutId) {
+    static clearSelection() {
+        if (!Desktop.#selectedShortcutId) {
             return;
         }
 
-        const selectedElement = this.#shortcutElements.get(
-            this.#selectedShortcutId
-        );
+        const selectedElement =
+            Desktop.#shortcutElements.get(
+                Desktop.#selectedShortcutId
+            );
 
         selectedElement?.classList.remove(
             "desktop-shortcut-selected"
@@ -97,16 +159,16 @@ export class Desktop {
             "false"
         );
 
-        this.#selectedShortcutId = null;
+        Desktop.#selectedShortcutId = null;
     }
 
     /**
      * Valida configurações e impede identificadores duplicados.
-     *
-     * @param {Array<object>} shortcuts Configurações recebidas.
-     * @returns {Array<object>}
      */
-    #normalizeShortcutConfigs(shortcuts) {
+    static #normalizeShortcutConfigs() {
+        const shortcuts =
+            Desktop.#shortcuts.shortcuts;
+
         if (!Array.isArray(shortcuts)) {
             throw new TypeError(
                 "A lista de atalhos deve ser um array."
@@ -115,46 +177,54 @@ export class Desktop {
 
         const registeredIds = new Set();
 
-        return shortcuts.map((shortcut, index) => {
-            const id = String(shortcut?.id ?? "").trim();
+        Desktop.#shortcutConfigs = shortcuts.map(
+            (shortcut, index) => {
+                const id = String(
+                    shortcut?.id ?? ""
+                ).trim();
 
-            if (!id) {
-                throw new TypeError(
-                    `O atalho da posição ${index} não possui id.`
-                );
+                if (!id) {
+                    throw new TypeError(
+                        `O atalho da posição ${index} não possui id.`
+                    );
+                }
+
+                if (registeredIds.has(id)) {
+                    throw new Error(
+                        `O identificador de atalho "${id}" está duplicado.`
+                    );
+                }
+
+                registeredIds.add(id);
+
+                return {
+                    id,
+                    label: String(
+                        shortcut.label ?? id
+                    ),
+                    iconSrc: String(
+                        shortcut.iconSrc ?? ""
+                    ),
+                    iconAlt: String(
+                        shortcut.iconAlt ??
+                        shortcut.label ??
+                        id
+                    ),
+                    action:
+                        typeof shortcut.action === "function"
+                            ? shortcut.action
+                            : () => {}
+                };
             }
-
-            if (registeredIds.has(id)) {
-                throw new Error(
-                    `O identificador de atalho "${id}" está duplicado.`
-                );
-            }
-
-            registeredIds.add(id);
-
-            return {
-                id,
-                label: String(shortcut.label ?? id),
-                iconSrc: String(shortcut.iconSrc ?? ""),
-                iconAlt: String(
-                    shortcut.iconAlt ??
-                    shortcut.label ??
-                    id
-                ),
-                action:
-                    typeof shortcut.action === "function"
-                        ? shortcut.action
-                        : () => {}
-            };
-        });
+        );
     }
 
     /**
-     * Cria uma camada exclusiva para os atalhos, preservando as janelas que
-     * também são adicionadas diretamente ao elemento #desktop.
+     * Cria uma camada exclusiva para os atalhos.
      */
-    #createShortcutLayer() {
-        const layer = document.createElement("section");
+    static #createShortcutLayer() {
+        const layer =
+            document.createElement("section");
 
         layer.className =
             "desktop-shortcuts-layer no-select";
@@ -164,22 +234,23 @@ export class Desktop {
             "Atalhos da área de trabalho"
         );
 
-        this.#shortcutLayer = layer;
-        this.#container.appendChild(layer);
+        Desktop.#shortcutLayer = layer;
+        Desktop.#container.appendChild(layer);
     }
 
     /**
      * Recupera posições salvas e resolve posições inválidas ou duplicadas.
      */
-    #restorePositions() {
-        const storedPositions = LocalStorageManager.get(
-            Desktop.#storageKey,
-            {}
-        );
+    static #restorePositions() {
+        const storedPositions =
+            LocalStorageManager.get(
+                Desktop.#storageKey,
+                {}
+            );
 
         const occupiedSlots = new Set();
 
-        this.#shortcutConfigs.forEach(
+        Desktop.#shortcutConfigs.forEach(
             (shortcut, defaultSlot) => {
                 const storedSlot = Number(
                     storedPositions?.[shortcut.id]
@@ -189,88 +260,105 @@ export class Desktop {
                     Number.isInteger(storedSlot) &&
                     storedSlot >= 0;
 
-                const desiredSlot = validStoredSlot
-                    ? storedSlot
-                    : defaultSlot;
+                const desiredSlot =
+                    validStoredSlot
+                        ? storedSlot
+                        : defaultSlot;
 
-                const availableSlot = occupiedSlots.has(
-                    desiredSlot
-                )
-                    ? this.#findFirstAvailableSlot(
-                        occupiedSlots
-                    )
-                    : desiredSlot;
+                const availableSlot =
+                    occupiedSlots.has(desiredSlot)
+                        ? Desktop.#findFirstAvailableSlot(
+                            occupiedSlots
+                        )
+                        : desiredSlot;
 
                 occupiedSlots.add(availableSlot);
 
-                this.#positions.set(
+                Desktop.#positions.set(
                     shortcut.id,
                     availableSlot
                 );
             }
         );
 
-        this.#savePositions();
+        Desktop.#savePositions();
     }
 
     /**
-     * Cria os elementos semânticos dos atalhos e registra seus eventos.
+     * Cria os elementos dos atalhos e registra seus eventos.
      */
-    #renderShortcuts() {
-        this.#shortcutConfigs.forEach(shortcut => {
-            const button = document.createElement("button");
-            const icon = document.createElement("img");
-            const label = document.createElement("span");
+    static #renderShortcuts() {
+        Desktop.#shortcutConfigs.forEach(
+            shortcut => {
+                const button =
+                    document.createElement("button");
 
-            button.type = "button";
-            button.className = "desktop-shortcut";
-            button.dataset.shortcutId = shortcut.id;
+                const icon =
+                    document.createElement("img");
 
-            button.setAttribute(
-                "aria-label",
-                `Abrir ${shortcut.label}`
-            );
+                const label =
+                    document.createElement("span");
 
-            button.setAttribute(
-                "aria-selected",
-                "false"
-            );
+                button.type = "button";
+                button.className =
+                    "desktop-shortcut";
 
-            icon.className = "desktop-shortcut-icon";
-            icon.src = shortcut.iconSrc;
-            icon.alt = shortcut.iconAlt;
-            icon.draggable = false;
+                button.dataset.shortcutId =
+                    shortcut.id;
 
-            label.className = "desktop-shortcut-label";
-            label.textContent = shortcut.label;
+                button.setAttribute(
+                    "aria-label",
+                    `Abrir ${shortcut.label}`
+                );
 
-            button.append(icon, label);
+                button.setAttribute(
+                    "aria-selected",
+                    "false"
+                );
 
-            this.#configureShortcutEvents(
-                button,
-                shortcut
-            );
+                icon.className =
+                    "desktop-shortcut-icon";
 
-            this.#shortcutElements.set(
-                shortcut.id,
-                button
-            );
+                icon.src = shortcut.iconSrc;
+                icon.alt = shortcut.iconAlt;
+                icon.draggable = false;
 
-            this.#shortcutLayer.appendChild(button);
-        });
+                label.className =
+                    "desktop-shortcut-label";
+
+                label.textContent =
+                    shortcut.label;
+
+                button.append(icon, label);
+
+                Desktop.#configureShortcutEvents(
+                    button,
+                    shortcut
+                );
+
+                Desktop.#shortcutElements.set(
+                    shortcut.id,
+                    button
+                );
+
+                Desktop.#shortcutLayer.appendChild(
+                    button
+                );
+            }
+        );
     }
 
     /**
      * Registra seleção, abertura e movimentação por ponteiro.
-     *
-     * @param {HTMLButtonElement} button Elemento do atalho.
-     * @param {object} shortcut Configuração correspondente.
      */
-    #configureShortcutEvents(button, shortcut) {
+    static #configureShortcutEvents(
+        button,
+        shortcut
+    ) {
         button.addEventListener(
             "pointerdown",
             event => {
-                this.#startShortcutDrag(
+                Desktop.#startShortcutDrag(
                     event,
                     shortcut.id
                 );
@@ -280,14 +368,14 @@ export class Desktop {
         button.addEventListener(
             "pointermove",
             event => {
-                this.#moveShortcut(event);
+                Desktop.#moveShortcut(event);
             }
         );
 
         button.addEventListener(
             "pointerup",
             event => {
-                this.#finishShortcutInteraction(
+                Desktop.#finishShortcutInteraction(
                     event,
                     shortcut
                 );
@@ -297,21 +385,23 @@ export class Desktop {
         button.addEventListener(
             "pointercancel",
             () => {
-                this.#cancelShortcutDrag();
+                Desktop.#cancelShortcutDrag();
             }
         );
 
         button.addEventListener(
             "click",
             event => {
-                if (this.#ignoreNextClick) {
+                if (Desktop.#ignoreNextClick) {
                     event.preventDefault();
-                    this.#ignoreNextClick = false;
+                    Desktop.#ignoreNextClick = false;
 
                     return;
                 }
 
-                this.#selectShortcut(shortcut.id);
+                Desktop.#selectShortcut(
+                    shortcut.id
+                );
             }
         );
 
@@ -320,7 +410,10 @@ export class Desktop {
             event => {
                 event.preventDefault();
 
-                if (this.#lastPointerType !== "touch") {
+                if (
+                    Desktop.#lastPointerType !==
+                    "touch"
+                ) {
                     shortcut.action();
                 }
             }
@@ -329,7 +422,7 @@ export class Desktop {
         button.addEventListener(
             "keydown",
             event => {
-                this.#handleShortcutKeydown(
+                Desktop.#handleShortcutKeydown(
                     event,
                     shortcut
                 );
@@ -338,10 +431,10 @@ export class Desktop {
     }
 
     /**
-     * Limpa a seleção quando o usuário interage com uma área vazia ou janela.
+     * Limpa a seleção quando o usuário interage com uma área vazia.
      */
-    #configureDesktopEvents() {
-        this.#container.addEventListener(
+    static #configureDesktopEvents() {
+        Desktop.#container.addEventListener(
             "pointerdown",
             event => {
                 const clickedShortcut =
@@ -352,56 +445,57 @@ export class Desktop {
                         : null;
 
                 if (!clickedShortcut) {
-                    this.clearSelection();
+                    Desktop.clearSelection();
                 }
             }
         );
     }
 
     /**
-     * Recalcula a grade sempre que o tamanho útil do desktop mudar.
+     * Recalcula a grade quando o tamanho do desktop mudar.
      */
-    #configureResizeObserver() {
-        this.#resizeObserver = new ResizeObserver(
-            () => {
-                requestAnimationFrame(
-                    () => this.#layoutShortcuts()
-                );
-            }
-        );
+    static #configureResizeObserver() {
+        Desktop.#resizeObserver =
+            new ResizeObserver(() => {
+                requestAnimationFrame(() => {
+                    Desktop.#layoutShortcuts();
+                });
+            });
 
-        this.#resizeObserver.observe(
-            this.#container
+        Desktop.#resizeObserver.observe(
+            Desktop.#container
         );
     }
 
     /**
      * Inicia uma possível movimentação do atalho.
-     *
-     * @param {PointerEvent} event Evento do ponteiro.
-     * @param {string} shortcutId Identificador do atalho.
      */
-    #startShortcutDrag(event, shortcutId) {
+    static #startShortcutDrag(
+        event,
+        shortcutId
+    ) {
         if (event.button !== 0) {
             return;
         }
 
         const element =
-            this.#shortcutElements.get(shortcutId);
+            Desktop.#shortcutElements.get(
+                shortcutId
+            );
 
         if (!element) {
             return;
         }
 
-        this.#selectShortcut(shortcutId);
+        Desktop.#selectShortcut(shortcutId);
 
-        this.#lastPointerType =
+        Desktop.#lastPointerType =
             event.pointerType || "mouse";
 
         const elementRect =
             element.getBoundingClientRect();
 
-        this.#dragState = {
+        Desktop.#dragState = {
             shortcutId,
             element,
             pointerId: event.pointerId,
@@ -409,11 +503,15 @@ export class Desktop {
             startX: event.clientX,
             startY: event.clientY,
             offsetX:
-                event.clientX - elementRect.left,
+                event.clientX -
+                elementRect.left,
             offsetY:
-                event.clientY - elementRect.top,
+                event.clientY -
+                elementRect.top,
             originalSlot:
-                this.#positions.get(shortcutId),
+                Desktop.#positions.get(
+                    shortcutId
+                ),
             moved: false
         };
 
@@ -423,12 +521,10 @@ export class Desktop {
     }
 
     /**
-     * Move visualmente o atalho antes de encaixá-lo no quadrante final.
-     *
-     * @param {PointerEvent} event Evento do ponteiro.
+     * Move visualmente o atalho antes do encaixe.
      */
-    #moveShortcut(event) {
-        const state = this.#dragState;
+    static #moveShortcut(event) {
+        const state = Desktop.#dragState;
 
         if (
             !state ||
@@ -450,32 +546,36 @@ export class Desktop {
         event.preventDefault();
 
         const layerRect =
-            this.#shortcutLayer.getBoundingClientRect();
+            Desktop.#shortcutLayer
+                .getBoundingClientRect();
 
-        const metrics = this.#getGridMetrics();
+        const metrics =
+            Desktop.#getGridMetrics();
 
         const maximumX = Math.max(
             0,
-            layerRect.width - metrics.cellWidth
+            layerRect.width -
+            metrics.cellWidth
         );
 
         const maximumY = Math.max(
             0,
-            layerRect.height - metrics.cellHeight
+            layerRect.height -
+            metrics.cellHeight
         );
 
-        const x = this.#clamp(
+        const x = Desktop.#clamp(
             event.clientX -
-                layerRect.left -
-                state.offsetX,
+            layerRect.left -
+            state.offsetX,
             0,
             maximumX
         );
 
-        const y = this.#clamp(
+        const y = Desktop.#clamp(
             event.clientY -
-                layerRect.top -
-                state.offsetY,
+            layerRect.top -
+            state.offsetY,
             0,
             maximumY
         );
@@ -489,13 +589,13 @@ export class Desktop {
     }
 
     /**
-     * Decide entre clique, segundo toque mobile ou conclusão do arraste.
-     *
-     * @param {PointerEvent} event Evento do ponteiro.
-     * @param {object} shortcut Configuração do atalho.
+     * Decide entre clique, toque ou conclusão do arraste.
      */
-    #finishShortcutInteraction(event, shortcut) {
-        const state = this.#dragState;
+    static #finishShortcutInteraction(
+        event,
+        shortcut
+    ) {
+        const state = Desktop.#dragState;
 
         if (
             !state ||
@@ -509,51 +609,53 @@ export class Desktop {
         );
 
         if (state.moved) {
-            this.#dropShortcut(event, state);
+            Desktop.#dropShortcut(
+                event,
+                state
+            );
 
-            this.#ignoreNextClick = true;
+            Desktop.#ignoreNextClick = true;
 
             setTimeout(() => {
-                this.#ignoreNextClick = false;
+                Desktop.#ignoreNextClick = false;
             }, 0);
 
             return;
         }
 
         if (state.pointerType === "touch") {
-            this.#handleTouchActivation(shortcut);
+            Desktop.#handleTouchActivation(
+                shortcut
+            );
         }
 
-        this.#dragState = null;
+        Desktop.#dragState = null;
     }
 
     /**
-     * Encaixa o atalho no quadrante mais próximo e troca de lugar com o item
-     * que já estiver ocupando o destino.
-     *
-     * @param {PointerEvent} event Evento final do ponteiro.
-     * @param {object} state Estado do arraste.
+     * Encaixa o atalho no quadrante mais próximo.
      */
-    #dropShortcut(event, state) {
-        const targetSlot = this.#getClosestSlot(
-            event.clientX,
-            event.clientY
-        );
+    static #dropShortcut(event, state) {
+        const targetSlot =
+            Desktop.#getClosestSlot(
+                event.clientX,
+                event.clientY
+            );
 
         const occupiedShortcutId =
-            this.#findShortcutAtSlot(
+            Desktop.#findShortcutAtSlot(
                 targetSlot,
                 state.shortcutId
             );
 
         if (occupiedShortcutId) {
-            this.#positions.set(
+            Desktop.#positions.set(
                 occupiedShortcutId,
                 state.originalSlot
             );
         }
 
-        this.#positions.set(
+        Desktop.#positions.set(
             state.shortcutId,
             targetSlot
         );
@@ -563,51 +665,50 @@ export class Desktop {
         );
 
         /*
-         * O estado precisa ser removido antes do layout.
-         *
-         * Enquanto #dragState aponta para o elemento,
-         * #layoutShortcuts() ignora esse atalho por
-         * considerar que ele ainda está sendo arrastado.
+         * Deve ser limpo antes do layout para que
+         * o atalho arrastado também seja reposicionado.
          */
-        this.#dragState = null;
+        Desktop.#dragState = null;
 
-        this.#savePositions();
-        this.#layoutShortcuts();
+        Desktop.#savePositions();
+        Desktop.#layoutShortcuts();
     }
 
     /**
-     * Cancela a movimentação e devolve o atalho ao quadrante anterior.
+     * Cancela a movimentação.
      */
-    #cancelShortcutDrag() {
-        if (!this.#dragState) {
+    static #cancelShortcutDrag() {
+        if (!Desktop.#dragState) {
             return;
         }
 
-        this.#dragState.element.classList.remove(
-            "desktop-shortcut-dragging"
-        );
+        Desktop.#dragState.element
+            .classList.remove(
+                "desktop-shortcut-dragging"
+            );
 
-        this.#dragState = null;
-        this.#layoutShortcuts();
+        Desktop.#dragState = null;
+        Desktop.#layoutShortcuts();
     }
 
     /**
-     * Em telas touch, o primeiro toque seleciona e o segundo abre o atalho.
-     *
-     * @param {object} shortcut Configuração do atalho.
+     * Em telas touch, o segundo toque abre o atalho.
      */
-    #handleTouchActivation(shortcut) {
+    static #handleTouchActivation(
+        shortcut
+    ) {
         const now = Date.now();
 
         const isSecondTap =
-            this.#lastTouch.shortcutId ===
-                shortcut.id &&
-            now - this.#lastTouch.timestamp <= 550;
+            Desktop.#lastTouch.shortcutId ===
+            shortcut.id &&
+            now -
+            Desktop.#lastTouch.timestamp <= 550;
 
         if (isSecondTap) {
             shortcut.action();
 
-            this.#lastTouch = {
+            Desktop.#lastTouch = {
                 shortcutId: null,
                 timestamp: 0
             };
@@ -615,19 +716,19 @@ export class Desktop {
             return;
         }
 
-        this.#lastTouch = {
+        Desktop.#lastTouch = {
             shortcutId: shortcut.id,
             timestamp: now
         };
     }
 
     /**
-     * Permite abrir o atalho usando a tecla Enter.
-     *
-     * @param {KeyboardEvent} event Evento de teclado.
-     * @param {object} shortcut Configuração do atalho.
+     * Permite abrir o atalho usando Enter.
      */
-    #handleShortcutKeydown(event, shortcut) {
+    static #handleShortcutKeydown(
+        event,
+        shortcut
+    ) {
         if (event.key !== "Enter") {
             return;
         }
@@ -637,21 +738,22 @@ export class Desktop {
     }
 
     /**
-     * Aplica destaque visual e estado acessível ao atalho selecionado.
-     *
-     * @param {string} shortcutId Identificador selecionado.
+     * Aplica destaque ao atalho selecionado.
      */
-    #selectShortcut(shortcutId) {
+    static #selectShortcut(shortcutId) {
         if (
-            this.#selectedShortcutId === shortcutId
+            Desktop.#selectedShortcutId ===
+            shortcutId
         ) {
             return;
         }
 
-        this.clearSelection();
+        Desktop.clearSelection();
 
         const shortcutElement =
-            this.#shortcutElements.get(shortcutId);
+            Desktop.#shortcutElements.get(
+                shortcutId
+            );
 
         if (!shortcutElement) {
             return;
@@ -666,54 +768,60 @@ export class Desktop {
             "true"
         );
 
-        this.#selectedShortcutId = shortcutId;
+        Desktop.#selectedShortcutId =
+            shortcutId;
     }
 
     /**
-     * Posiciona cada atalho de acordo com seu índice de quadrante.
+     * Posiciona os atalhos nos quadrantes.
      */
-    #layoutShortcuts() {
-        if (!this.#shortcutLayer) {
+    static #layoutShortcuts() {
+        if (!Desktop.#shortcutLayer) {
             return;
         }
 
-        const metrics = this.#getGridMetrics();
+        const metrics =
+            Desktop.#getGridMetrics();
 
-        this.#positions.forEach(
+        Desktop.#positions.forEach(
             (slot, shortcutId) => {
                 const shortcutElement =
-                    this.#shortcutElements.get(
+                    Desktop.#shortcutElements.get(
                         shortcutId
                     );
 
                 if (
                     !shortcutElement ||
                     shortcutElement ===
-                        this.#dragState?.element
+                    Desktop.#dragState?.element
                 ) {
                     return;
                 }
 
-                const safeSlot = this.#clamp(
-                    slot,
-                    0,
-                    metrics.totalSlots - 1
-                );
+                const safeSlot =
+                    Desktop.#clamp(
+                        slot,
+                        0,
+                        metrics.totalSlots - 1
+                    );
 
                 const column =
                     safeSlot % metrics.columns;
 
                 const row = Math.floor(
-                    safeSlot / metrics.columns
+                    safeSlot /
+                    metrics.columns
                 );
 
                 const left =
                     metrics.paddingX +
-                    column * metrics.cellWidth;
+                    column *
+                    metrics.cellWidth;
 
                 const top =
                     metrics.paddingY +
-                    row * metrics.cellHeight;
+                    row *
+                    metrics.cellHeight;
 
                 shortcutElement.dataset.desktopSlot =
                     String(slot);
@@ -728,57 +836,51 @@ export class Desktop {
     }
 
     /**
-     * Calcula dimensões da grade a partir das variáveis CSS responsivas.
-     *
-     * @returns {{
-     * cellWidth: number,
-     * cellHeight: number,
-     * paddingX: number,
-     * paddingY: number,
-     * columns: number,
-     * rows: number,
-     * totalSlots: number
-     * }}
+     * Calcula as dimensões da grade.
      */
-    #getGridMetrics() {
+    static #getGridMetrics() {
         const styles = getComputedStyle(
-            this.#container
+            Desktop.#container
         );
 
-        const cellWidth = this.#readCssNumber(
-            styles,
-            "--desktop-grid-cell-width",
-            104
-        );
+        const cellWidth =
+            Desktop.#readCssNumber(
+                styles,
+                "--desktop-grid-cell-width",
+                104
+            );
 
-        const cellHeight = this.#readCssNumber(
-            styles,
-            "--desktop-grid-cell-height",
-            104
-        );
+        const cellHeight =
+            Desktop.#readCssNumber(
+                styles,
+                "--desktop-grid-cell-height",
+                104
+            );
 
-        const paddingX = this.#readCssNumber(
-            styles,
-            "--desktop-grid-padding-x",
-            12
-        );
+        const paddingX =
+            Desktop.#readCssNumber(
+                styles,
+                "--desktop-grid-padding-x",
+                12
+            );
 
-        const paddingY = this.#readCssNumber(
-            styles,
-            "--desktop-grid-padding-y",
-            12
-        );
+        const paddingY =
+            Desktop.#readCssNumber(
+                styles,
+                "--desktop-grid-padding-y",
+                12
+            );
 
         const availableWidth = Math.max(
             1,
-            this.#container.clientWidth -
-                paddingX * 2
+            Desktop.#container.clientWidth -
+            paddingX * 2
         );
 
         const availableHeight = Math.max(
             1,
-            this.#container.clientHeight -
-                paddingY * 2
+            Desktop.#container.clientHeight -
+            paddingY * 2
         );
 
         const columns = Math.max(
@@ -807,17 +909,18 @@ export class Desktop {
     }
 
     /**
-     * Converte a coordenada do ponteiro no quadrante mais próximo.
-     *
-     * @param {number} clientX Coordenada horizontal da viewport.
-     * @param {number} clientY Coordenada vertical da viewport.
-     * @returns {number}
+     * Converte a posição do ponteiro no quadrante mais próximo.
      */
-    #getClosestSlot(clientX, clientY) {
+    static #getClosestSlot(
+        clientX,
+        clientY
+    ) {
         const layerRect =
-            this.#shortcutLayer.getBoundingClientRect();
+            Desktop.#shortcutLayer
+                .getBoundingClientRect();
 
-        const metrics = this.#getGridMetrics();
+        const metrics =
+            Desktop.#getGridMetrics();
 
         const localX =
             clientX -
@@ -829,17 +932,19 @@ export class Desktop {
             layerRect.top -
             metrics.paddingY;
 
-        const column = this.#clamp(
+        const column = Desktop.#clamp(
             Math.floor(
-                localX / metrics.cellWidth
+                localX /
+                metrics.cellWidth
             ),
             0,
             metrics.columns - 1
         );
 
-        const row = this.#clamp(
+        const row = Desktop.#clamp(
             Math.floor(
-                localY / metrics.cellHeight
+                localY /
+                metrics.cellHeight
             ),
             0,
             metrics.rows - 1
@@ -852,13 +957,9 @@ export class Desktop {
     }
 
     /**
-     * Localiza quem ocupa um quadrante específico.
-     *
-     * @param {number} slot Quadrante consultado.
-     * @param {string|null} excludedId Atalho ignorado na busca.
-     * @returns {string|null}
+     * Localiza o atalho que ocupa um quadrante.
      */
-    #findShortcutAtSlot(
+    static #findShortcutAtSlot(
         slot,
         excludedId = null
     ) {
@@ -866,7 +967,7 @@ export class Desktop {
             const [
                 shortcutId,
                 shortcutSlot
-            ] of this.#positions
+            ] of Desktop.#positions
         ) {
             if (
                 shortcutId !== excludedId &&
@@ -881,11 +982,8 @@ export class Desktop {
 
     /**
      * Encontra o primeiro quadrante livre.
-     *
-     * @param {Set<number>} occupiedSlots Quadrantes ocupados.
-     * @returns {number}
      */
-    #findFirstAvailableSlot(
+    static #findFirstAvailableSlot(
         occupiedSlots
     ) {
         let slot = 0;
@@ -898,26 +996,21 @@ export class Desktop {
     }
 
     /**
-     * Persiste todas as posições em um único objeto JSON.
+     * Persiste as posições no LocalStorage.
      */
-    #savePositions() {
+    static #savePositions() {
         LocalStorageManager.save(
             Desktop.#storageKey,
             Object.fromEntries(
-                this.#positions
+                Desktop.#positions
             )
         );
     }
 
     /**
-     * Lê uma variável CSS numérica e aplica um fallback seguro.
-     *
-     * @param {CSSStyleDeclaration} styles Estilos computados.
-     * @param {string} propertyName Nome da variável CSS.
-     * @param {number} fallback Valor alternativo.
-     * @returns {number}
+     * Lê uma variável CSS numérica.
      */
-    #readCssNumber(
+    static #readCssNumber(
         styles,
         propertyName,
         fallback
@@ -928,24 +1021,45 @@ export class Desktop {
             )
         );
 
-        return Number.isFinite(value) &&
+        return (
+            Number.isFinite(value) &&
             value > 0
+        )
             ? value
             : fallback;
     }
 
     /**
-     * Limita um número ao intervalo informado.
-     *
-     * @param {number} value Valor recebido.
-     * @param {number} minimum Limite mínimo.
-     * @param {number} maximum Limite máximo.
-     * @returns {number}
+     * Limita um valor dentro de um intervalo.
      */
-    #clamp(value, minimum, maximum) {
+    static #clamp(
+        value,
+        minimum,
+        maximum
+    ) {
         return Math.max(
             minimum,
             Math.min(value, maximum)
         );
+    }
+
+    /**
+     * Abre uma nova janela de aplicação.
+     *
+     * @param {object} config Configuração da janela.
+     * @param {string} config.title Título da aplicação.
+     * @param {string} config.iconSrc Ícone da aplicação.
+     */
+    static #openApplicationWindow({
+        title,
+        iconSrc
+    }) {
+        new Window(Desktop.#container, {
+            title,
+            iconSrc,
+            iconAlt: title,
+            contentSrc:
+                "./components/window/content/wip.html"
+        });
     }
 }
