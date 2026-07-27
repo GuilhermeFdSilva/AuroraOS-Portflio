@@ -9,10 +9,6 @@ export class Taskbar {
     static #taskButtons = new Map();
     static #taskObserverConfigured = false;
 
-    constructor() {
-        throw new Error("Taskbar is a static class and cannot be instantiated.");
-    }
-
     static async getTaskbar(container) {
         if (Taskbar.#instance) {
             return Taskbar.#instance;

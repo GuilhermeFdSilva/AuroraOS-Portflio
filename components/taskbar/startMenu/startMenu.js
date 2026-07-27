@@ -1,4 +1,4 @@
-import { Window } from "../../window/window.js";
+import { ApplicationManager } from "../../aplications/applicationManager.js";
 import { Task } from "../../task/task.js";
 import { SessionScreem } from "../../sessionScreem/sessionScreem.js";
 import { StartMenuItemManager } from "./startMenuItemManager.js";
@@ -10,11 +10,7 @@ export class StartMenu {
     static #startMenuTemplateCache = null;
     static #itemManager = null;
     static #powerEntry = null;
-
-    constructor() {
-        throw new Error("StartMenu is a static class and cannot be instantiated.");
-    }
-
+    
     static async configInstance(button) {
         if (StartMenu.#startMenu) {
             return StartMenu.#startMenu;
@@ -85,9 +81,8 @@ export class StartMenu {
                         label: "Bloco de notas",
                         iconSrc: "assets/bloco_de_notas.png",
                         iconAlt: "Bloco de notas",
-                        action: () => StartMenu.#openApplicationWindow(
-                            "Bloco de notas",
-                            "./assets/bloco_de_notas.png"
+                        action: () => ApplicationManager.open(
+                            "notepad"
                         )
                     },
                     {
@@ -95,9 +90,8 @@ export class StartMenu {
                         label: "Calculadora",
                         iconSrc: "assets/calculadora.png",
                         iconAlt: "Calculadora",
-                        action: () => StartMenu.#openApplicationWindow(
-                            "Calculadora",
-                            "./assets/calculadora.png"
+                        action: () => ApplicationManager.open(
+                            "calculator"
                         )
                     }
                 ]
@@ -113,9 +107,8 @@ export class StartMenu {
                         label: "Currículo",
                         iconSrc: "assets/doc.png",
                         iconAlt: "Currículo",
-                        action: () => StartMenu.#openApplicationWindow(
-                            "Currículo",
-                            "./assets/doc.png"
+                        action: () => ApplicationManager.open(
+                            "resume"
                         )
                     },
                     {
@@ -123,9 +116,8 @@ export class StartMenu {
                         label: "Projetos",
                         iconSrc: "assets/docs.png",
                         iconAlt: "Projetos",
-                        action: () => StartMenu.#openApplicationWindow(
-                            "Projetos",
-                            "./assets/docs.png"
+                        action: () => ApplicationManager.open(
+                            "projects"
                         )
                     }
                 ]
@@ -239,17 +231,6 @@ export class StartMenu {
         StartMenu.#powerEntry
             .querySelector(":scope > #start-menu-power-button")
             ?.setAttribute("aria-expanded", "false");
-    }
-
-    static #openApplicationWindow(title, iconSrc) {
-        const desktop = document.getElementById("desktop");
-
-        new Window(desktop, {
-            title,
-            iconSrc,
-            iconAlt: title,
-            contentSrc: "./components/window/content/wip.html"
-        });
     }
 
     static #shutdownSystem() {

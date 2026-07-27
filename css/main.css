@@ -8,6 +8,7 @@
 @import '../components/taskbar/startMenu/startMenu.css';
 @import '../components/taskbar/calendar/calendar.css';
 @import '../components/dialog/dialog.css';
+@import '../components/aplications/resume/resume.css';
 @import '../components/window/window.css';
 
 * {

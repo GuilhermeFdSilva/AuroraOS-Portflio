@@ -69,7 +69,8 @@ export class Window extends Task {
             contentSrc = "",
             width = "",
             height = "",
-            startMaximized = false
+            startMaximized = false,
+            onContentLoaded = null
         } = config;
 
         const html = await Window.#loadWindowTemplate();
@@ -95,7 +96,25 @@ export class Window extends Task {
         });
 
         this.#configureDimensions(windowElement, { width, height });
-        await this.#loadContent(windowElement, contentSrc);
+
+        const contentElement = await this.#loadContent(
+            windowElement,
+            contentSrc
+        );
+
+        if (
+            contentElement &&
+            typeof onContentLoaded === "function"
+        ) {
+            try {
+                await onContentLoaded(contentElement);
+            } catch (error) {
+                console.error(
+                    `Não foi possível inicializar a aplicação "${title}".`,
+                    error
+                );
+            }
+        }
 
         const closeButton = windowElement.querySelector(
             ".application-window-close"
@@ -174,6 +193,7 @@ export class Window extends Task {
      *
      * @param {HTMLElement} windowElement Elemento principal da janela.
      * @param {string} contentSrc Caminho do componente HTML.
+     * @returns {Promise<HTMLElement|null>} Container carregado.
      */
     async #loadContent(windowElement, contentSrc) {
         const contentElement = windowElement.querySelector(
@@ -181,12 +201,12 @@ export class Window extends Task {
         );
 
         if (!(contentElement instanceof HTMLElement)) {
-            return;
+            return null;
         }
 
         if (!contentSrc) {
             contentElement.textContent = "Nenhum conteúdo foi informado.";
-            return;
+            return contentElement;
         }
 
         try {
@@ -197,10 +217,14 @@ export class Window extends Task {
             }
 
             contentElement.innerHTML = await response.text();
+
+            return contentElement;
         } catch (error) {
             console.error(error);
             contentElement.textContent =
                 "Não foi possível carregar o conteúdo desta aplicação.";
+
+            return null;
         }
     }
 

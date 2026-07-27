@@ -6,12 +6,6 @@
 export class LocalStorageManager {
     static #prefix = "aurora-os";
 
-    constructor() {
-        throw new Error(
-            "LocalStorageManager é uma classe estática e não pode ser instanciada."
-        );
-    }
-
     /**
      * Salva qualquer valor serializável em JSON.
      *

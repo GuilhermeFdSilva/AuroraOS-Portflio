@@ -1,5 +1,5 @@
 import { LocalStorageManager } from "../../js/storage/localStorageManager.js";
-import { Window } from "../window/window.js";
+import { ApplicationManager } from "../aplications/applicationManager.js";
 
 /**
  * Gerencia os atalhos exibidos na área de trabalho.
@@ -14,40 +14,28 @@ export class Desktop {
                 label: "Bloco de notas",
                 iconSrc: "./assets/bloco_de_notas.png",
                 iconAlt: "Bloco de notas",
-                action: () => Desktop.#openApplicationWindow({
-                    title: "Bloco de notas",
-                    iconSrc: "./assets/bloco_de_notas.png"
-                })
+                action: () => ApplicationManager.open("notepad")
             },
             {
                 id: "calculator",
                 label: "Calculadora",
                 iconSrc: "./assets/calculadora.png",
                 iconAlt: "Calculadora",
-                action: () => Desktop.#openApplicationWindow({
-                    title: "Calculadora",
-                    iconSrc: "./assets/calculadora.png"
-                })
+                action: () => ApplicationManager.open("calculator")
             },
             {
                 id: "resume",
                 label: "Currículo",
                 iconSrc: "./assets/doc.png",
                 iconAlt: "Currículo",
-                action: () => Desktop.#openApplicationWindow({
-                    title: "Currículo",
-                    iconSrc: "./assets/doc.png"
-                })
+                action: () => ApplicationManager.open("resume")
             },
             {
                 id: "projects",
                 label: "Projetos",
                 iconSrc: "./assets/docs.png",
                 iconAlt: "Projetos",
-                action: () => Desktop.#openApplicationWindow({
-                    title: "Projetos",
-                    iconSrc: "./assets/docs.png"
-                })
+                action: () => ApplicationManager.open("projects")
             }
         ]
     };
@@ -69,12 +57,6 @@ export class Desktop {
 
     static #ignoreNextClick = false;
     static #lastPointerType = "mouse";
-
-    constructor() {
-        throw new Error(
-            "Desktop is a static class and cannot be instantiated."
-        );
-    }
 
     /**
      * Configura e retorna o desktop da aplicação.
@@ -1043,23 +1025,4 @@ export class Desktop {
         );
     }
 
-    /**
-     * Abre uma nova janela de aplicação.
-     *
-     * @param {object} config Configuração da janela.
-     * @param {string} config.title Título da aplicação.
-     * @param {string} config.iconSrc Ícone da aplicação.
-     */
-    static #openApplicationWindow({
-        title,
-        iconSrc
-    }) {
-        new Window(Desktop.#container, {
-            title,
-            iconSrc,
-            iconAlt: title,
-            contentSrc:
-                "./components/window/content/wip.html"
-        });
-    }
 }

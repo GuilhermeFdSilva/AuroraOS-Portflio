@@ -36,9 +36,6 @@ export class Calendar {
     static #calendarButtonUp = null;
     static #calendarButtonDown = null;
 
-    constructor() {
-        throw new Error("Calendar is a static class and cannot be instantiated.");
-    }
 
     static async configureInstance(calendarButton) {
         if (Calendar.#calendar) {

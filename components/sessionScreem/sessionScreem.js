@@ -3,10 +3,6 @@ export class SessionScreem {
     static #context = null;
     static #sessionScreemTemplateCache = null;
 
-    constructor() {
-        throw new Error("SessionScreem is a singleton class. Use SessionScreem.getSessionScreem() to get the instance.");
-    }
-
     static async getSessionScreem(container) {
         if (SessionScreem.#instance) {
             return SessionScreem.#instance;
