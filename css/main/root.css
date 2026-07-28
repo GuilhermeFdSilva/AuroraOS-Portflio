@@ -94,6 +94,11 @@
         var(--interface-title-height)
     );
 
+    --resume-font-size-name: 16px;
+    --resume-font-size-title: 14px;
+    --resume-font-size: 12px;
+    --resume-viewer-gap: 30px;
+
     --viewport-height: 100vh;
     --viewport-width: 100vw;
     --viewport-top: 0px;

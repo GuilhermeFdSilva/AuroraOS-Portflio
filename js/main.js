@@ -3,8 +3,8 @@ import { SysBoot } from "../components/sysBoot/bootTerminal.js";
 import { SessionScreem } from "../components/sessionScreem/sessionScreem.js";
 import { Taskbar } from "../components/taskbar/taskbar.js";
 import { Dialog } from "../components/dialog/dialog.js";
-import { Window } from "../components/window/window.js";
 import { Desktop } from "../components/desktop/desktop.js";
+import { ApplicationManager } from "../components/aplications/applicationManager.js";
 
 Viewport.configure();
 
@@ -19,3 +19,6 @@ const taskbar = await Taskbar.getTaskbar(taskbarElement);
 const desktop = await Desktop.getDesktop(desktopElement);
 
 sysBoot.startBoot();
+
+ApplicationManager.configure(desktopElement);
+ApplicationManager.open("resume");

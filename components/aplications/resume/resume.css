@@ -1,0 +1,216 @@
+.resume-container {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: var(--font-family);
+}
+
+.resume-nav {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-y: hidden;
+    overflow-x: scroll;
+}
+
+.resume-nav-buttons {
+    display: flex;
+    gap: var(--interface-content-gap);
+    padding: var(--interface-content-padding);
+    text-wrap: nowrap;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.resume-nav-img {
+    width: var(--font-size);
+    height: var(--font-size);
+    transform: translateY(-1px);
+}
+
+.resume-nav-buttons:hover {
+    background-color: var(--gray-light);
+}
+
+.resume-nav-buttons:active {
+    transform: scale(0.99);
+}
+
+.resume-main {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    background-color: var(--gray-dark);
+    border-left: ar(--interface-divider-shadow) solid var(--gray-dark);
+    border-right: var(--interface-divider-shadow) solid var(--gray-light);
+    border-top: var(--interface-divider-shadow) solid var(--gray-dark);
+    border-bottom: var(--interface-divider-shadow) solid var(--gray-light);
+}
+
+.resume-iframe {
+    flex: 0 0 auto;
+    height: 297mm;
+    width: 210mm;
+}
+
+.resume-aside {
+    width: 20%;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-y: scroll;
+    color: var(--text-muted);
+}
+
+.resume-pg-indicator {
+    text-align: center;
+}
+
+.resume-aside-iframe {
+    transform: scale(0.25);
+    transform-origin: top left;
+}
+
+.resume-viewer {
+    height: 100%;
+    flex-grow: 1;
+    padding: 50px 0;
+    display: flex;
+    gap: var(--resume-viewer-gap);
+    flex-direction: column;
+    align-items: center;
+    overflow-y: scroll;
+}
+
+.resume-footer {
+    padding: var(--interface-content-padding);
+    display: flex;
+    justify-content: space-between;
+}
+
+.resume-header,
+.resume-footer {
+    flex: 0 0 auto;
+}
+
+/* Configurações do iframe */
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.resume-page {
+    box-sizing: border-box;
+    padding: 12mm;
+    height: 297mm;
+    width: 210mm;
+    background-color: var(--document);
+    font-family: var(--font-family);
+    font-size: var(--resume-font-size);
+}
+
+.resume-header {
+    display: flex;
+    position: relative;
+}
+
+.resume-name {
+    position: absolute;
+    font-size: var(--resume-font-size-name);
+    margin: 0;
+    text-wrap: nowrap;
+}
+
+.resume-contact {
+    flex-grow: 1;
+    text-wrap: nowrap;
+    text-align: right;
+    line-height: 1.2rem;
+}
+
+.resume-objective {
+    padding: var(--interface-content-padding);
+    background-color: var(--gray-light);
+    font-size: var(--resume-font-size-title);
+    text-align: center;
+}
+
+.resume-section {
+    margin-bottom: 20px;
+}
+
+.resume-section-title {
+    font-size: var(--resume-font-size-title);
+    margin: 0;
+}
+
+.resume-divider {
+    margin-top: 1px;
+}
+
+.resume-summary {
+    line-height: 1.1rem;
+    text-align: justify;
+}
+
+.resume-skills {
+    display: flex;
+}
+
+.resume-skills-list {
+    flex-grow: 1;
+    padding-left: 20px;
+}
+
+.resume-list {
+    padding-left: 20px;
+}
+
+.resume-item {
+    margin-bottom: 20px;
+}
+
+.resume-item-header {
+    width: 100%;
+    height: 1.1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.resume-item-subtitle {
+    margin: 0;
+}
+
+.resume-item-details {
+    margin: 10px 0 20px 0;
+}
+
+.resume-item-details li {
+    line-height: 1.1rem;
+}
+
+.resume-course-title {
+    line-height: 1.1rem;
+}
+
+.resume-course-details {
+    margin-top: 10px;
+}
+
+.resume-course-details li {
+    line-height: 1.1rem;
+}
+
+.resume-course-hours {
+    margin: 5px 0 20px;
+}

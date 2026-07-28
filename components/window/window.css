@@ -1,10 +1,13 @@
 @import '../../css/main/root.css';
 
 .application-window {
+    position: absolute;
     width: min(760px, calc(100% - 2 * var(--interface-content-padding)));
     height: min(520px, calc(100% - 2 * var(--interface-content-padding)));
     min-width: min(320px, 100%);
     min-height: min(220px, 100%);
+    max-width: 100%;
+    max-height: 100%;
     top: 0;
     left: 0;
     display: flex;
@@ -13,19 +16,24 @@
 }
 
 .application-window-content {
+    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
     min-height: 0;
-    flex: 1;
     overflow: auto;
     padding: var(--interface-content-padding);
     background-color: var(--surface);
 }
 
 .application-window[data-window-maximized="true"] {
+    inset: 0;
     width: 100%;
     height: 100%;
-    max-width: none;
-    max-height: none;
+    min-width: 0;
+    min-height: 0;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
 }
 
 .application-wip-content {

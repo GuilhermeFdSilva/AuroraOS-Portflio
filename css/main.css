@@ -16,13 +16,13 @@
   padding: 0;
   box-sizing: border-box;
   font-family: var(--font-family);
-  font-size:  var(--font-size);
+  font-size: var(--font-size);
 }
 
 @media (max-width: 510px) {
-    * {
-      font-size: var(--font-size-small);
-    }
+  * {
+    font-size: var(--font-size-small);
+  }
 }
 
 ::selection {
@@ -37,15 +37,41 @@
 
 html,
 body {
-    width: var(--viewport-width);
-    height: var(--viewport-height);
-    min-height: var(--viewport-height);
-    overflow: hidden;
-    overscroll-behavior: none;
+  width: var(--viewport-width);
+  height: var(--viewport-height);
+  min-height: var(--viewport-height);
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
-    position: fixed;
-    top: var(--viewport-top);
-    left: var(--viewport-left);
+  position: fixed;
+  top: var(--viewport-top);
+  left: var(--viewport-left);
+}
+
+::-webkit-scrollbar {
+  width: calc(var(--interface-button-size) / 2);
+  height: calc(var(--interface-button-size) / 2);
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--gray);
+  padding: var(--interface-content-padding);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--surface);
+  border-left: var(--interface-button-shadow) solid var(--gray-light);
+  border-right: var(--interface-button-shadow) solid var(--gray-dark);
+  border-top: var(--interface-button-shadow) solid var(--gray-light);
+  border-bottom: var(--interface-button-shadow) solid var(--gray-dark);
+}
+
+::-webkit-scrollbar-corner {
+  background-color: var(--surface);
+  border-left: var(--interface-button-shadow) solid var(--gray-light);
+  border-right: var(--interface-button-shadow) solid var(--gray-dark);
+  border-top: var(--interface-button-shadow) solid var(--gray-light);
+  border-bottom: var(--interface-button-shadow) solid var(--gray-dark);
 }
