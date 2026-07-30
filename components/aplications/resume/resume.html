@@ -1,66 +1,101 @@
-<secttion class="resume-container">
+<section class="resume-container">
     <header class="resume-header">
         <nav class="resume-nav" aria-label="Ações do currículo">
             <button type="button" class="resume-nav-buttons resume-print-button">
-                <img src="./assets/micro/print.png" alt="Imprimir" class="resume-nav-img">
+                <img src="./assets/micro/print.png" alt="" class="resume-nav-img">
                 <span>Imprimir</span>
             </button>
 
-            <div class="interface-divider"></div>
+            <div class="interface-divider" aria-hidden="true"></div>
 
             <button type="button" class="resume-nav-buttons resume-download-button">
-                <img src="./assets/micro/download.png" alt="Download" class="resume-nav-img">
+                <img src="./assets/micro/download.png" alt="" class="resume-nav-img">
                 <span>Baixar PDF</span>
             </button>
 
-            <div class="interface-divider"></div>
+            <div class="interface-divider" aria-hidden="true"></div>
 
-            <button type="button" class="resume-nav-buttons">
-                <img src="./assets/micro/github.png" alt="GitHub" class="resume-nav-img">
+            <button type="button" class="resume-nav-buttons resume-redirect-button"
+                data-resume-url="https://github.com/GuilhermeFdSilva">
+                <img src="./assets/micro/github.png" alt="" class="resume-nav-img">
                 <span>GitHub</span>
             </button>
 
-            <div class="interface-divider"></div>
+            <div class="interface-divider" aria-hidden="true"></div>
 
-            <button type="button" class="resume-nav-buttons">
-                <img src="./assets/micro/linkedin.png" alt="Linkedin" class="resume-nav-img">
-                <span>Linkedin</span>
+            <button type="button" class="resume-nav-buttons resume-redirect-button"
+                data-resume-url="https://www.linkedin.com/in/guilherme-fran%C3%A7a-da-silva-4756a8155/">
+                <img src="./assets/micro/linkedin.png" alt="" class="resume-nav-img">
+                <span>LinkedIn</span>
             </button>
 
-            <div class="interface-divider"></div>
+            <div class="interface-divider" aria-hidden="true"></div>
 
-            <button type="button" class="resume-nav-buttons">
-                <img src="./assets/micro/email.png" alt="Email" class="resume-nav-img">
+            <button type="button" class="resume-nav-buttons resume-redirect-button"
+                data-resume-url="mailto:francaguilherme27@gmail.com">
+                <img src="./assets/micro/email.png" alt="" class="resume-nav-img">
                 <span>Contato</span>
             </button>
         </nav>
     </header>
 
     <main class="resume-main">
-        <aside class="resume-aside" aria-label="Miniaturas das páginas">
-            <div class="resume-thumbnail-frame">
-                <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0"
-                    class="resume-aside-iframe resume-iframe"></iframe>
-            </div>
-            <span class="resume-pg-indicator">1</span>
+        <aside class="resume-aside" aria-label="Navegação pelas páginas do currículo">
+            <a href="#resume-page-1" class="resume-thumbnail-link is-active" data-resume-page="1"
+                aria-label="Ir para a página 1" aria-current="page">
+                <div class="resume-thumbnail-frame">
+                    <iframe src="./components/aplications/resume/pages/page1.html" title="Miniatura da página 1"
+                        class="resume-aside-iframe resume-iframe" tabindex="-1"></iframe>
+                </div>
+                <span class="resume-pg-indicator">1</span>
+            </a>
 
-            <div class="resume-thumbnail-frame">
-                <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0"
-                    class="resume-aside-iframe resume-iframe"></iframe>
-            </div>
-            <span class="resume-pg-indicator">2</span>
+            <a href="#resume-page-2" class="resume-thumbnail-link" data-resume-page="2"
+                aria-label="Ir para a página 2">
+                <div class="resume-thumbnail-frame">
+                    <iframe src="./components/aplications/resume/pages/page2.html" title="Miniatura da página 2"
+                        class="resume-aside-iframe resume-iframe" tabindex="-1"></iframe>
+                </div>
+                <span class="resume-pg-indicator">2</span>
+            </a>
         </aside>
 
-        <section class="resume-viewer" aria-label="Visualização do currículo">
-            <div class="resume-page-frame">
-                <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0"
+        <section class="resume-viewer" aria-label="Visualização do currículo" tabindex="0">
+            <div id="resume-page-1" class="resume-page-frame" data-resume-page="1">
+                <iframe src="./components/aplications/resume/pages/page1.html" title="Página 1 do currículo"
                     class="resume-viewer-iframe resume-iframe"></iframe>
             </div>
 
-            <div class="resume-page-frame">
-                <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0"
+            <div id="resume-page-2" class="resume-page-frame" data-resume-page="2">
+                <iframe src="./components/aplications/resume/pages/page2.html" title="Página 2 do currículo"
                     class="resume-viewer-iframe resume-iframe"></iframe>
             </div>
         </section>
     </main>
-</secttion>
+
+    <footer class="resume-footer">
+        <nav class="resume-pagination" aria-label="Paginação do currículo">
+            <a href="#resume-page-1" class="resume-pagination-control resume-pagination-previous interface-button"
+                aria-label="Página anterior" aria-disabled="true">&lsaquo;</a>
+
+            <a href="#resume-page-1" class="resume-pagination-page is-active interface-button" data-resume-page="1"
+                aria-label="Página 1" aria-current="page">1</a>
+            <a href="#resume-page-2" class="resume-pagination-page interface-button" data-resume-page="2"
+                aria-label="Página 2">2</a>
+
+            <a href="#resume-page-2" class="resume-pagination-control resume-pagination-next interface-button"
+                aria-label="Próxima página">&rsaquo;</a>
+        </nav>
+
+        <div class="resume-page-status" aria-live="polite">
+            Página <span class="resume-current-page">1</span> de <span class="resume-total-pages">2</span>
+        </div>
+
+        <div class="resume-zoom" aria-label="Controles de zoom">
+            <button type="button" class="resume-zoom-button resume-zoom-out interface-button" aria-label="Diminuir zoom">−</button>
+            <output class="resume-zoom-value" aria-live="polite">100%</output>
+            <button type="button" class="resume-zoom-button resume-zoom-in interface-button" aria-label="Aumentar zoom">+</button>
+            <button type="button" class="resume-zoom-fit interface-button">Ajustar</button>
+        </div>
+    </footer>
+</section>
