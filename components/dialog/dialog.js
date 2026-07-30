@@ -1,5 +1,8 @@
 import { Task } from "../task/task.js";
 
+/**
+ * Representa uma caixa de diálogo simples dentro do desktop.
+ */
 export class Dialog extends Task {
     static #dialogTemplateCache = null;
     static #cascadeStateByContext = new WeakMap();
@@ -8,12 +11,14 @@ export class Dialog extends Task {
     static #cascadeStep = 28;
     static #cascadeColumnStep = 56;
 
+    /** Cria e abre uma caixa de diálogo. */
     constructor(context, config = {}) {
         super(context);
 
         this.#openDialog(config);
     }
 
+    /** Carrega e mantém em cache o template da caixa de diálogo. */
     static async #loadDialogTemplate() {
         if (Dialog.#dialogTemplateCache) {
             return Dialog.#dialogTemplateCache;
@@ -32,6 +37,7 @@ export class Dialog extends Task {
         return Dialog.#dialogTemplateCache;
     }
 
+    /** Preenche o template e registra a caixa como tarefa. */
     async #openDialog(config = {}) {
         const {
             title = "Aviso",
@@ -50,6 +56,8 @@ export class Dialog extends Task {
         if (!(dialog instanceof HTMLElement)) {
             throw new Error("O template da Dialog não possui um elemento válido.");
         }
+
+        dialog.setAttribute("aria-label", title);
 
         const titleElement = dialog.querySelector(".interface-title-text");
         const messageElement = dialog.querySelector(".dialog-message");
@@ -94,6 +102,7 @@ export class Dialog extends Task {
         Dialog.#observeDialogClosing(context, this);
     }
 
+    /** Posiciona novas caixas em sequência para evitar sobreposição total. */
     static #positionInCascade(dialog, context, task) {
         if (
             !(dialog instanceof HTMLElement) ||
@@ -126,6 +135,7 @@ export class Dialog extends Task {
         Dialog.#advanceCascadeState(state, bounds);
     }
 
+    /** Recupera ou cria o estado de posicionamento do desktop atual. */
     static #getCascadeState(context, bounds) {
         let state = Dialog.#cascadeStateByContext.get(context);
 
@@ -166,6 +176,7 @@ export class Dialog extends Task {
         return state;
     }
 
+    /** Calcula a posição central dentro dos limites disponíveis. */
     static #getCenteredPosition(bounds) {
         return {
             x: bounds.minX + (bounds.maxX - bounds.minX) / 2,
@@ -173,6 +184,7 @@ export class Dialog extends Task {
         };
     }
 
+    /** Limpa o estado da cascata quando a última caixa é fechada. */
     static #observeDialogClosing(context, task) {
         if (!(context instanceof HTMLElement)) {
             return;
@@ -199,49 +211,41 @@ export class Dialog extends Task {
         );
     }
 
-static #advanceCascadeState(state, bounds) {
-    const horizontalSpace = Math.max(
-        0,
-        bounds.maxX - bounds.minX
-    );
+    /** Avança a próxima posição da cascata. */
+    static #advanceCascadeState(state, bounds) {
+        const horizontalSpace = Math.max(
+            0,
+            bounds.maxX - bounds.minX
+        );
 
-    const horizontalStep =
-        horizontalSpace >= Dialog.#cascadeStep
+        const horizontalStep = horizontalSpace >= Dialog.#cascadeStep
             ? Dialog.#cascadeStep
             : 0;
+        const nextX = state.x + horizontalStep;
+        const nextY = state.y + Dialog.#cascadeStep;
 
-    const nextX = state.x + horizontalStep;
-    const nextY = state.y + Dialog.#cascadeStep;
+        if (nextX <= bounds.maxX && nextY <= bounds.maxY) {
+            state.x = nextX;
+            state.y = nextY;
+            return;
+        }
 
-    if (
-        nextX <= bounds.maxX &&
-        nextY <= bounds.maxY
-    ) {
-        state.x = nextX;
-        state.y = nextY;
+        const columnStep = Math.min(
+            Dialog.#cascadeColumnStep,
+            horizontalSpace
+        );
+        let nextColumnX = state.columnX + columnStep;
 
-        return;
+        if (columnStep === 0 || nextColumnX > bounds.maxX) {
+            nextColumnX = bounds.minX;
+        }
+
+        state.columnX = nextColumnX;
+        state.x = nextColumnX;
+        state.y = bounds.minY;
     }
 
-    const columnStep = Math.min(
-        Dialog.#cascadeColumnStep,
-        horizontalSpace
-    );
-
-    let nextColumnX = state.columnX + columnStep;
-
-    if (
-        columnStep === 0 ||
-        nextColumnX > bounds.maxX
-    ) {
-        nextColumnX = bounds.minX;
-    }
-
-    state.columnX = nextColumnX;
-    state.x = nextColumnX;
-    state.y = bounds.minY;
-}
-
+    /** Calcula os limites disponíveis para posicionar a caixa. */
     static #getPositionBounds(dialog, context) {
         const maximumX = Math.max(
             0,
@@ -283,6 +287,7 @@ static #advanceCascadeState(state, bounds) {
         };
     }
 
+    /** Limita um valor ao intervalo recebido. */
     static #clamp(value, minimum, maximum) {
         return Math.max(
             minimum,

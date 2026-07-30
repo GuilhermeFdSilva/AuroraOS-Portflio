@@ -9,30 +9,39 @@
     font-family: var(--font-family);
 }
 
+.resume-header {
+    flex: 0 0 auto;
+}
+
 .resume-nav {
+    min-width: 0;
     display: flex;
     flex-wrap: nowrap;
+    overflow-x: auto;
     overflow-y: hidden;
-    overflow-x: scroll;
 }
 
 .resume-nav-buttons {
+    flex: 0 0 auto;
     display: flex;
+    align-items: center;
     gap: var(--interface-content-gap);
     padding: var(--interface-content-padding);
-    text-wrap: nowrap;
-    background-color: transparent;
     border: none;
+    background-color: transparent;
+    white-space: nowrap;
     cursor: pointer;
 }
 
 .resume-nav-img {
     width: var(--font-size);
     height: var(--font-size);
+    object-fit: contain;
     transform: translateY(-1px);
 }
 
-.resume-nav-buttons:hover {
+.resume-nav-buttons:hover,
+.resume-nav-buttons:focus-visible {
     background-color: var(--gray-light);
 }
 
@@ -49,46 +58,72 @@
     align-items: stretch;
     overflow: hidden;
     background-color: var(--gray-dark);
-    border-left: ar(--interface-divider-shadow) solid var(--gray-dark);
+    border-left: var(--interface-divider-shadow) solid var(--gray-dark);
     border-right: var(--interface-divider-shadow) solid var(--gray-light);
     border-top: var(--interface-divider-shadow) solid var(--gray-dark);
     border-bottom: var(--interface-divider-shadow) solid var(--gray-light);
 }
 
 .resume-iframe {
+    display: block;
     flex: 0 0 auto;
-    height: 297mm;
     width: 210mm;
+    height: 297mm;
+    border: 0;
+    background-color: var(--document);
 }
 
 .resume-aside {
-    width: 20%;
+    flex: 0 0 220px;
     min-width: 200px;
+    min-height: 0;
+    padding: 12px 6px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow-y: scroll;
+    gap: 8px;
+    overflow-y: auto;
+    overflow-x: hidden;
     color: var(--text-muted);
 }
 
-.resume-pg-indicator {
-    text-align: center;
+.resume-thumbnail-frame {
+    flex: 0 0 auto;
+    width: 52.5mm;
+    height: 74.25mm;
+    overflow: hidden;
+    background-color: var(--document);
 }
 
 .resume-aside-iframe {
     transform: scale(0.25);
     transform-origin: top left;
+    cursor: pointer;
+}
+
+.resume-pg-indicator {
+    flex: 0 0 auto;
+    text-align: center;
 }
 
 .resume-viewer {
-    height: 100%;
-    flex-grow: 1;
-    padding: 50px 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    padding: 50px 20px;
     display: flex;
-    gap: var(--resume-viewer-gap);
     flex-direction: column;
     align-items: center;
-    overflow-y: scroll;
+    gap: var(--resume-viewer-gap);
+    overflow: auto;
+}
+
+.resume-page-frame {
+    flex: 0 0 auto;
+    width: 210mm;
+    height: 297mm;
+    overflow: hidden;
+    background-color: var(--document);
 }
 
 .resume-footer {
@@ -102,7 +137,7 @@
     flex: 0 0 auto;
 }
 
-/* Configurações do iframe */
+/* Estilos aplicados dentro de cada iframe do currículo. */
 html,
 body {
     margin: 0;
@@ -111,30 +146,30 @@ body {
 
 .resume-page {
     box-sizing: border-box;
-    padding: 12mm;
-    height: 297mm;
     width: 210mm;
+    height: 297mm;
+    padding: 12mm;
     background-color: var(--document);
     font-family: var(--font-family);
     font-size: var(--resume-font-size);
 }
 
-.resume-header {
-    display: flex;
+.resume-page .resume-header {
     position: relative;
+    display: flex;
 }
 
 .resume-name {
     position: absolute;
-    font-size: var(--resume-font-size-name);
     margin: 0;
-    text-wrap: nowrap;
+    font-size: var(--resume-font-size-name);
+    white-space: nowrap;
 }
 
 .resume-contact {
     flex-grow: 1;
-    text-wrap: nowrap;
     text-align: right;
+    white-space: nowrap;
     line-height: 1.2rem;
 }
 
@@ -150,8 +185,8 @@ body {
 }
 
 .resume-section-title {
-    font-size: var(--resume-font-size-title);
     margin: 0;
+    font-size: var(--resume-font-size-title);
 }
 
 .resume-divider {
@@ -182,24 +217,19 @@ body {
 
 .resume-item-header {
     width: 100%;
-    height: 1.1rem;
+    min-height: 1.1rem;
     display: flex;
     justify-content: space-between;
+    gap: 10px;
 }
 
 .resume-item-subtitle {
-    margin: 0;
+    margin: 10px 0 20px;
 }
 
-.resume-item-details {
-    margin: 10px 0 20px 0;
-}
-
-.resume-item-details li {
-    line-height: 1.1rem;
-}
-
-.resume-course-title {
+.resume-item-details li,
+.resume-course-title,
+.resume-course-details li {
     line-height: 1.1rem;
 }
 
@@ -207,10 +237,85 @@ body {
     margin-top: 10px;
 }
 
-.resume-course-details li {
-    line-height: 1.1rem;
-}
-
 .resume-course-hours {
     margin: 5px 0 20px;
+}
+
+@media (max-width: 1050px) {
+    .resume-aside {
+        display: none;
+    }
+}
+
+@media (max-width: 850px) {
+    .resume-page-frame {
+        width: 168mm;
+        height: 237.6mm;
+    }
+
+    .resume-viewer-iframe {
+        transform: scale(0.8);
+    }
+}
+
+@media (max-width: 650px) {
+    .resume-viewer {
+        padding: 25px 12px;
+    }
+
+    .resume-page-frame {
+        width: 126mm;
+        height: 178.2mm;
+    }
+
+    .resume-viewer-iframe {
+        transform: scale(0.6);
+    }
+}
+
+@media (max-width: 520px) {
+    .resume-viewer {
+        padding: 16px 8px;
+        gap: 18px;
+    }
+
+    .resume-page-frame {
+        width: 105mm;
+        height: 148.5mm;
+    }
+
+    .resume-viewer-iframe {
+        transform: scale(0.5);
+    }
+
+    .resume-footer {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 420px) {
+    .resume-viewer {
+        padding: 12px 6px;
+        gap: 16px;
+    }
+
+    .resume-page-frame {
+        width: 84mm;
+        height: 118.8mm;
+    }
+
+    .resume-viewer-iframe {
+        transform: scale(0.4);
+    }
+}
+
+@media (max-width: 340px) {
+    .resume-page-frame {
+        width: 73.5mm;
+        height: 103.95mm;
+    }
+
+    .resume-viewer-iframe {
+        transform: scale(0.35);
+    }
 }

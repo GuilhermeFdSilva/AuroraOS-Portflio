@@ -765,6 +765,8 @@ export class Desktop {
         const metrics =
             Desktop.#getGridMetrics();
 
+        Desktop.#normalizePositionsForGrid(metrics);
+
         Desktop.#positions.forEach(
             (slot, shortcutId) => {
                 const shortcutElement =
@@ -806,7 +808,7 @@ export class Desktop {
                     metrics.cellHeight;
 
                 shortcutElement.dataset.desktopSlot =
-                    String(slot);
+                    String(safeSlot);
 
                 shortcutElement.style.left =
                     `${left}px`;
@@ -815,6 +817,63 @@ export class Desktop {
                     `${top}px`;
             }
         );
+    }
+
+    /**
+     * Ajusta posições antigas para a grade atual sem sobrepor atalhos.
+     * Isso é necessário quando a tela muda de desktop para celular.
+     */
+    static #normalizePositionsForGrid(metrics) {
+        const occupiedSlots = new Set();
+        let positionsChanged = false;
+
+        Desktop.#shortcutConfigs.forEach((shortcut, index) => {
+            const currentSlot = Desktop.#positions.get(shortcut.id);
+            const numericSlot = Number.isInteger(currentSlot)
+                ? currentSlot
+                : index;
+
+            let safeSlot = Desktop.#clamp(
+                numericSlot,
+                0,
+                Math.max(0, metrics.totalSlots - 1)
+            );
+
+            if (occupiedSlots.has(safeSlot)) {
+                const availableSlot = Desktop.#findAvailableGridSlot(
+                    occupiedSlots,
+                    metrics.totalSlots
+                );
+
+                if (availableSlot !== null) {
+                    safeSlot = availableSlot;
+                }
+            }
+
+            occupiedSlots.add(safeSlot);
+
+            if (currentSlot !== safeSlot) {
+                Desktop.#positions.set(shortcut.id, safeSlot);
+                positionsChanged = true;
+            }
+        });
+
+        if (positionsChanged) {
+            Desktop.#savePositions();
+        }
+    }
+
+    /**
+     * Retorna o primeiro quadrante livre dentro da grade visível.
+     */
+    static #findAvailableGridSlot(occupiedSlots, totalSlots) {
+        for (let slot = 0; slot < totalSlots; slot++) {
+            if (!occupiedSlots.has(slot)) {
+                return slot;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -1,9 +1,11 @@
+/**
+ * Exibe a animação inicial de carregamento do AuroraOS.
+ */
 export class SysBoot {
     static #instance = null;
     static #context = null;
     static #element = null;
     static #bootTerminalTemplateCache = null;
-    static #firstBoot = true;
 
     static #bootLines = [
         "AuroraOS BIOS v1.0",
@@ -46,12 +48,18 @@ export class SysBoot {
     #keydownHandler = null;
     #pointerHandler = null;
 
+    /**
+     * Impede a criação direta; a instância deve ser obtida pelo método estático.
+     */
     constructor() {
         if (!SysBoot.#context) {
             throw new Error("SysBoot is a singleton class. Use SysBoot.getSysBoot() to get the instance.");
         }
     }
 
+    /**
+     * Cria e retorna a única instância da tela de boot.
+     */
     static async getSysBoot(container) {
         if (SysBoot.#instance) {
             return SysBoot.#instance;
@@ -63,15 +71,25 @@ export class SysBoot {
 
         const sysBootHTML = await SysBoot.#loadBootTerminalTemplate();
         const wrapper = document.createElement("div");
+
         wrapper.innerHTML = sysBootHTML;
 
-        SysBoot.#element = wrapper.firstElementChild;
+        const bootElement = wrapper.firstElementChild;
+
+        if (!(bootElement instanceof HTMLElement)) {
+            throw new Error("O template de boot é inválido.");
+        }
+
+        SysBoot.#element = bootElement;
         SysBoot.#context = container;
         SysBoot.#instance = new SysBoot();
 
         return SysBoot.#instance;
     }
 
+    /**
+     * Exibe o terminal e inicia a escrita das linhas do sistema.
+     */
     async startBoot() {
         if (this.#bootStarted || this.#closed) return;
 
@@ -81,17 +99,27 @@ export class SysBoot {
         await this.#startTyping();
     }
 
+    /**
+     * Carrega e mantém em cache o template do terminal.
+     */
     static async #loadBootTerminalTemplate() {
         if (SysBoot.#bootTerminalTemplateCache) {
             return SysBoot.#bootTerminalTemplateCache;
         }
 
         const response = await fetch("./components/sysBoot/bootTerminal.html");
-        SysBoot.#bootTerminalTemplateCache = await response.text();
 
+        if (!response.ok) {
+            throw new Error(`Não foi possível carregar o terminal: ${response.status}`);
+        }
+
+        SysBoot.#bootTerminalTemplateCache = await response.text();
         return SysBoot.#bootTerminalTemplateCache;
     }
 
+    /**
+     * Permite pular o boot com Escape ou toque no texto indicado.
+     */
     #addBootListeners() {
         SysBoot.#element.focus();
 
@@ -115,6 +143,7 @@ export class SysBoot {
         SysBoot.#element.addEventListener("pointerup", this.#pointerHandler);
     }
 
+    /** Remove os eventos registrados durante o boot. */
     #removeBootListeners() {
         if (this.#keydownHandler) {
             SysBoot.#element.removeEventListener("keydown", this.#keydownHandler);
@@ -128,27 +157,35 @@ export class SysBoot {
         this.#pointerHandler = null;
     }
 
+    /**
+     * Encerra a animação e remove o terminal após a transição visual.
+     */
     #closeBoot() {
         if (this.#closed) return;
 
         this.#closed = true;
-        SysBoot.#firstBoot = false;
         this.#removeBootListeners();
         SysBoot.#element.classList.add("exit");
 
-        setTimeout(() => {
-            SysBoot.#element.remove();
-        }, 500);
+        setTimeout(() => SysBoot.#element.remove(), 500);
     }
 
+    /**
+     * Escreve cada linha do boot com um pequeno atraso.
+     */
     async #startTyping() {
         const bootDisplay = SysBoot.#element.querySelector("#boot");
         const skip = SysBoot.#element.querySelector("#skip");
+
+        if (!(bootDisplay instanceof HTMLElement)) {
+            throw new Error("A área de texto do boot não foi encontrada.");
+        }
 
         for (const text of SysBoot.#bootLines) {
             if (this.#closed) return;
 
             const line = document.createElement("p");
+
             line.classList.add("no-select");
             bootDisplay.appendChild(line);
 
@@ -159,7 +196,6 @@ export class SysBoot {
             if (typeof text === "object" && text.type === "end") {
                 line.classList.add("blink");
                 line.textContent = "< PRESS ANY KEY TO START >";
-
                 this.#bootComplete = true;
                 this.#changeVisibility(bootDisplay, skip);
                 continue;
@@ -177,16 +213,19 @@ export class SysBoot {
         }
     }
 
+    /** Troca o terminal do estado de carregamento para concluído. */
     #changeVisibility(bootDisplay, skip) {
         skip?.remove();
         bootDisplay.classList.remove("loading-started");
         bootDisplay.classList.add("loading-complete");
     }
 
+    /** Aguarda o tempo informado sem bloquear a página. */
     #delay(milliseconds) {
         return new Promise(resolve => setTimeout(resolve, milliseconds));
     }
 
+    /** Calcula uma pausa curta proporcional ao tamanho da linha. */
     #lineRandomDelay(textLength) {
         const minimum = textLength;
         const maximum = textLength * 2;

@@ -4,25 +4,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> portfolio-v1 </title>
-    <link rel="stylesheet" href="css/main.css">
+    <title> AuroraOS | Guilherme França </title>
+    <link rel="stylesheet" href="./css/main.css">
 </head>
 
 <body>
-    <!-- Filtro de monitor analigico "retro" -->
-    <div id="crt-overlay"></div>
+    <!-- Camada visual que simula as linhas de um monitor CRT. -->
+    <div id="crt-overlay" aria-hidden="true"></div>
 
-    <!-- Container para a tela de carregamento do sistema -->
+    <!-- Containers preenchidos pelos componentes JavaScript. -->
     <section id="boot-container"></section>
-    
-    <!-- Container para a tela de login do usuário -->
     <section id="session-container"></section>
 
-    <!-- Taskbar - Seção apra conter o menu de navegação, juntamente com ferramentas e itens do Systema Opercional -->
-    <nav id="taskbar" class="interface-window no-select"></nav>
-
-    <!-- Área de trabalo -->
-    <main id="desktop"></main>
+    <!-- Interface principal do sistema. -->
+    <nav id="taskbar" class="interface-window no-select" aria-label="Barra de tarefas"></nav>
+    <main id="desktop" aria-label="Área de trabalho"></main>
 
     <script type="module" src="./js/main.js" defer></script>
 </body>

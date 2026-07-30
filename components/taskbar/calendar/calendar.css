@@ -1,44 +1,61 @@
 @import "../../../css/main/root.css";
 
 #taskbar-calendar-container {
-    width: var(--calendar-container-size);
-    height: var(--calendar-container-size);
     position: fixed;
     z-index: 8500;
-    bottom: var(--taskbar-height);
     right: 0;
+    bottom: var(--taskbar-height);
+    width: min(var(--calendar-container-size), var(--viewport-width));
+    height: min(var(--calendar-container-size),
+            calc(var(--viewport-height) - var(--taskbar-height)));
+    max-height: calc(var(--viewport-height) - var(--taskbar-height));
     display: flex;
     flex-direction: column;
     gap: var(--interface-content-gap);
     padding-bottom: var(--interface-content-gap);
 }
 
+#titlebar-calendar {
+    flex: 0 0 auto;
+}
+
 #month-year {
-    width: var(--calendar-month-field-width);
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: var(--font-size-small);
     color: var(--text);
     cursor: default;
 }
 
 #container-dates {
-    background-color: var(--gray-light);
-    gap: 1px;
-    width: var(--calendar-dates-width);
-    height: var(--calendar-dates-height);
+    flex: 1 1 auto;
+    min-height: 0;
+    width: calc(100% - 2 * var(--interface-button-shadow) - 2 * var(--interface-content-gap));
+    height: auto;
     margin: auto;
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    gap: 1px;
+    overflow: hidden;
+    background-color: var(--gray-light);
 }
 
 .day-field {
-    background-color: var(--surface);
     width: 100%;
     height: 100%;
+    min-width: 0;
+    min-height: 0;
     padding-top: 2px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    background-color: var(--surface);
 }
 
 .week {
@@ -54,10 +71,9 @@
 
 .weekend-day {
     background-color: rgb(var(--primary-light-rgb), 0.4);
-    
 }
 
-.month-day  {
+.month-day {
     cursor: pointer;
 }
 
@@ -73,4 +89,13 @@
 
 .today {
     border: var(--interface-button-focus-shadow) solid var(--accent);
+}
+
+@media (max-width: 360px),
+(max-height: 420px) {
+
+    .day-field,
+    #month-year {
+        font-size: 9px;
+    }
 }

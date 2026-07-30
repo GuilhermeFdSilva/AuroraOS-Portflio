@@ -1,54 +1,66 @@
 <secttion class="resume-container">
     <header class="resume-header">
-        <nav class="resume-nav">
-            <button class="resume-nav-buttons resume-print-button">
+        <nav class="resume-nav" aria-label="Ações do currículo">
+            <button type="button" class="resume-nav-buttons resume-print-button">
                 <img src="./assets/micro/print.png" alt="Imprimir" class="resume-nav-img">
                 <span>Imprimir</span>
             </button>
 
             <div class="interface-divider"></div>
 
-            <button class="resume-nav-buttons resume-download-button">
+            <button type="button" class="resume-nav-buttons resume-download-button">
                 <img src="./assets/micro/download.png" alt="Download" class="resume-nav-img">
                 <span>Baixar PDF</span>
             </button>
 
             <div class="interface-divider"></div>
 
-            <button class="resume-nav-buttons">
+            <button type="button" class="resume-nav-buttons">
                 <img src="./assets/micro/github.png" alt="GitHub" class="resume-nav-img">
                 <span>GitHub</span>
             </button>
 
             <div class="interface-divider"></div>
 
-            <button class="resume-nav-buttons">
+            <button type="button" class="resume-nav-buttons">
                 <img src="./assets/micro/linkedin.png" alt="Linkedin" class="resume-nav-img">
                 <span>Linkedin</span>
             </button>
 
             <div class="interface-divider"></div>
 
-            <button class="resume-nav-buttons">
+            <button type="button" class="resume-nav-buttons">
                 <img src="./assets/micro/email.png" alt="Email" class="resume-nav-img">
                 <span>Contato</span>
             </button>
         </nav>
     </header>
+
     <main class="resume-main">
-        <aside class="resume-aside">
-            <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0" class="resume-aside-iframe resume-iframe"></iframe>
+        <aside class="resume-aside" aria-label="Miniaturas das páginas">
+            <div class="resume-thumbnail-frame">
+                <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0"
+                    class="resume-aside-iframe resume-iframe"></iframe>
+            </div>
             <span class="resume-pg-indicator">1</span>
-            <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0" class="resume-aside-iframe resume-iframe"></iframe>
+
+            <div class="resume-thumbnail-frame">
+                <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0"
+                    class="resume-aside-iframe resume-iframe"></iframe>
+            </div>
             <span class="resume-pg-indicator">2</span>
         </aside>
-        <section class="resume-viewer">
-            <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0" class="resume-viewer-iframe resume-iframe"></iframe>
-            <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0" class="resume-viewer-iframe resume-iframe"></iframe>
+
+        <section class="resume-viewer" aria-label="Visualização do currículo">
+            <div class="resume-page-frame">
+                <iframe src="./components/aplications/resume/pages/page1.html" frameborder="0"
+                    class="resume-viewer-iframe resume-iframe"></iframe>
+            </div>
+
+            <div class="resume-page-frame">
+                <iframe src="./components/aplications/resume/pages/page2.html" frameborder="0"
+                    class="resume-viewer-iframe resume-iframe"></iframe>
+            </div>
         </section>
     </main>
-    <footer class="resume-footer">
-        <article>Página</article>
-        <article>Zoom</article>
-    </footer>
 </secttion>

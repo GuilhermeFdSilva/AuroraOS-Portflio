@@ -1,3 +1,6 @@
+/**
+ * Controla o calendário exibido a partir da barra de tarefas.
+ */
 export class Calendar {
     static #calendar = null;
     static #calendarButton = null;
@@ -37,17 +40,21 @@ export class Calendar {
     static #calendarButtonDown = null;
 
 
+    /**
+     * Cria o calendário e registra seus controles de abertura e navegação.
+     */
     static async configureInstance(calendarButton) {
         if (Calendar.#calendar) {
             return Calendar.#calendar;
         }
 
-        if (!(calendarButton instanceof HTMLElement)) {
+        if (!(calendarButton instanceof HTMLButtonElement)) {
             throw new TypeError("A valid calendar button is required.");
         }
 
         Calendar.#calendar = await Calendar.#loadCalendar();
         Calendar.#calendarButton = calendarButton;
+        Calendar.#calendarButton.setAttribute("aria-expanded", "false");
 
         Calendar.#calendarButton.addEventListener("click", event => {
             event.stopPropagation();
@@ -55,6 +62,8 @@ export class Calendar {
         });
 
         document.addEventListener("click", event => {
+            if (!(event.target instanceof Node)) return;
+
             const clickedOutsideCalendar = !Calendar.#calendar.contains(event.target);
             const clickedOutsideButton = !Calendar.#calendarButton.contains(event.target);
 
@@ -82,6 +91,7 @@ export class Calendar {
         return Calendar.#calendar;
     }
 
+    /** Retorna o botão que controla o calendário. */
     static getInstance() {
         if (!Calendar.#calendarButton) {
             throw new Error("Calendar instance not created yet.");
@@ -90,52 +100,74 @@ export class Calendar {
         return Calendar.#calendarButton;
     }
 
+    /** Carrega e mantém em cache o template do calendário. */
     static async #loadCalendarTemplate() {
         if (Calendar.#calendarTemplateCache) {
             return Calendar.#calendarTemplateCache;
         }
 
         const response = await fetch("./components/taskbar/calendar/calendar.html");
-        Calendar.#calendarTemplateCache = await response.text();
 
+        if (!response.ok) {
+            throw new Error(`Não foi possível carregar o calendário: ${response.status}`);
+        }
+
+        Calendar.#calendarTemplateCache = await response.text();
         return Calendar.#calendarTemplateCache;
     }
 
+    /** Monta o elemento do calendário e encontra seus controles internos. */
     static async #loadCalendar() {
         const wrapper = document.createElement("div");
+
         wrapper.innerHTML = await Calendar.#loadCalendarTemplate();
 
         Calendar.#calendarContainer = wrapper.firstElementChild;
+
+        if (!(Calendar.#calendarContainer instanceof HTMLElement)) {
+            throw new Error("O template do calendário é inválido.");
+        }
+
         Calendar.#monthsYearField = Calendar.#calendarContainer.querySelector("#month-year");
         Calendar.#containerDates = Calendar.#calendarContainer.querySelector("#container-dates");
         Calendar.#calendarButtonUp = Calendar.#calendarContainer.querySelector("#calendar-button-up");
         Calendar.#calendarButtonDown = Calendar.#calendarContainer.querySelector("#calendar-button-down");
 
+        if (
+            !(Calendar.#monthsYearField instanceof HTMLElement) ||
+            !(Calendar.#containerDates instanceof HTMLElement) ||
+            !(Calendar.#calendarButtonUp instanceof HTMLButtonElement) ||
+            !(Calendar.#calendarButtonDown instanceof HTMLButtonElement)
+        ) {
+            throw new Error("A estrutura do calendário está incompleta.");
+        }
+
         return Calendar.#calendarContainer;
     }
 
+    /** Cria o cabeçalho com as iniciais dos dias da semana. */
     static #setDaysOfWeek() {
         Calendar.#daysWeek.forEach((dayInitial, index) => {
             const dayOfWeek = document.createElement("p");
+
             dayOfWeek.classList.add("day-field");
             dayOfWeek.classList.add(index === 0 || index === 6 ? "weekend" : "week");
             dayOfWeek.textContent = dayInitial;
-
             Calendar.#containerDates.appendChild(dayOfWeek);
         });
     }
 
+    /** Preenche as 42 posições do calendário com os dias visíveis. */
     static #updateDays() {
-        Calendar.#monthsYearField.innerText = `${Calendar.#months[Calendar.#displayMonth]} - ${Calendar.#displayYear}`;
+        Calendar.#monthsYearField.textContent = `${Calendar.#months[Calendar.#displayMonth]} - ${Calendar.#displayYear}`;
         Calendar.#containerDates.innerHTML = "";
         Calendar.#setDaysOfWeek();
 
         let textDay = Calendar.#firstDay === 0
             ? 1
             : Calendar.#previousMonthDays - (Calendar.#firstDay - 1);
-
-        let previousDays = textDay > 1;
-        let color = previousDays ? "not-month-day" : "month-day";
+        let outsideCurrentMonth = textDay > 1;
+        let color = outsideCurrentMonth ? "not-month-day" : "month-day";
 
         for (let fieldIndex = 0; fieldIndex < 42; fieldIndex++) {
             const day = document.createElement("p");
@@ -144,15 +176,15 @@ export class Calendar {
             day.appendChild(span);
             day.classList.add("day-field");
 
-            if (previousDays && textDay > Calendar.#previousMonthDays) {
+            if (outsideCurrentMonth && textDay > Calendar.#previousMonthDays) {
                 textDay = 1;
-                previousDays = false;
+                outsideCurrentMonth = false;
                 color = "month-day";
             }
 
-            if (!previousDays && textDay > Calendar.#daysInMonth) {
+            if (!outsideCurrentMonth && textDay > Calendar.#daysInMonth) {
                 textDay = 1;
-                previousDays = true;
+                outsideCurrentMonth = true;
                 color = "not-month-day";
             }
 
@@ -160,7 +192,7 @@ export class Calendar {
                 Calendar.#displayMonth === Calendar.#currentMonth &&
                 Calendar.#displayYear === Calendar.#currentYear &&
                 textDay === Calendar.#today &&
-                !previousDays
+                !outsideCurrentMonth
             );
 
             if (isToday) {
@@ -178,6 +210,7 @@ export class Calendar {
         }
     }
 
+    /** Recalcula quantidade de dias e posição inicial do mês exibido. */
     static #updateMonthYear() {
         Calendar.#daysInMonth = new Date(
             Calendar.#displayYear,
@@ -200,6 +233,7 @@ export class Calendar {
         Calendar.#updateDays();
     }
 
+    /** Avança um mês, incluindo a troca de ano. */
     static #plusMonth() {
         Calendar.#displayMonth++;
 
@@ -211,6 +245,7 @@ export class Calendar {
         Calendar.#updateMonthYear();
     }
 
+    /** Retorna um mês, incluindo a troca de ano. */
     static #minusMonth() {
         Calendar.#displayMonth--;
 
@@ -222,15 +257,21 @@ export class Calendar {
         Calendar.#updateMonthYear();
     }
 
+    /** Alterna a visibilidade do calendário. */
     static #switchCalendarVisibility() {
         Calendar.#calendarVisible = !Calendar.#calendarVisible;
         Calendar.#calendarContainer.style.display = Calendar.#calendarVisible ? "flex" : "none";
+        Calendar.#calendarButton.setAttribute(
+            "aria-expanded",
+            String(Calendar.#calendarVisible)
+        );
 
         if (Calendar.#calendarVisible) {
             Calendar.#resetDay();
         }
     }
 
+    /** Volta a visualização para o mês e dia atuais. */
     static #resetDay() {
         Calendar.#now = new Date();
         Calendar.#today = Calendar.#now.getDate();
@@ -238,7 +279,6 @@ export class Calendar {
         Calendar.#currentYear = Calendar.#now.getFullYear();
         Calendar.#displayMonth = Calendar.#currentMonth;
         Calendar.#displayYear = Calendar.#currentYear;
-
         Calendar.#updateMonthYear();
     }
 }

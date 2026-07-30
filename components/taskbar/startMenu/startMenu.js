@@ -3,6 +3,9 @@ import { Task } from "../../task/task.js";
 import { SessionScreem } from "../../sessionScreem/sessionScreem.js";
 import { StartMenuItemManager } from "./startMenuItemManager.js";
 
+/**
+ * Controla o menu iniciar, suas listas e as ações básicas do sistema.
+ */
 export class StartMenu {
     static #startMenu = null;
     static #startMenuButton = null;
@@ -10,18 +13,22 @@ export class StartMenu {
     static #startMenuTemplateCache = null;
     static #itemManager = null;
     static #powerEntry = null;
-    
+
+    /**
+     * Cria o menu iniciar e registra todos os eventos necessários.
+     */
     static async configInstance(button) {
         if (StartMenu.#startMenu) {
             return StartMenu.#startMenu;
         }
 
-        if (!(button instanceof HTMLElement)) {
+        if (!(button instanceof HTMLButtonElement)) {
             throw new TypeError("A valid start menu button is required.");
         }
 
         StartMenu.#startMenu = await StartMenu.#loadStartMenu();
         StartMenu.#startMenuButton = button;
+        StartMenu.#startMenuButton.setAttribute("aria-expanded", "false");
 
         StartMenu.#configureMenuItems();
         StartMenu.#configureSystemActions();
@@ -30,6 +37,7 @@ export class StartMenu {
         return StartMenu.#startMenu;
     }
 
+    /** Retorna o botão que controla o menu iniciar. */
     static getInstance() {
         if (!StartMenu.#startMenuButton) {
             throw new Error("StartMenu instance not created yet.");
@@ -38,17 +46,23 @@ export class StartMenu {
         return StartMenu.#startMenuButton;
     }
 
+    /** Carrega e mantém em cache o HTML do menu iniciar. */
     static async #loadStartMenuTemplate() {
         if (StartMenu.#startMenuTemplateCache) {
             return StartMenu.#startMenuTemplateCache;
         }
 
         const response = await fetch("./components/taskbar/startMenu/startMenu.html");
-        StartMenu.#startMenuTemplateCache = await response.text();
 
+        if (!response.ok) {
+            throw new Error(`Não foi possível carregar o menu iniciar: ${response.status}`);
+        }
+
+        StartMenu.#startMenuTemplateCache = await response.text();
         return StartMenu.#startMenuTemplateCache;
     }
 
+    /** Monta o elemento principal usando o template carregado. */
     static async #loadStartMenu() {
         const wrapper = document.createElement("div");
         wrapper.innerHTML = await StartMenu.#loadStartMenuTemplate();
@@ -56,18 +70,22 @@ export class StartMenu {
         return wrapper.firstElementChild;
     }
 
+    /**
+     * Define as listas e aplicações já existentes no menu.
+     */
     static #configureMenuItems() {
         const programsContainer = StartMenu.#startMenu.querySelector(
             "#start-menu-programs-container"
         );
 
-        StartMenu.#itemManager = new StartMenuItemManager(
-            programsContainer,
-            {
-                onApplicationSelected: () => StartMenu.#hideStartMenu(),
-                onListOpened: () => StartMenu.#closePowerOptions()
-            }
-        );
+        if (!(programsContainer instanceof HTMLElement)) {
+            throw new Error("O container de programas não foi encontrado.");
+        }
+
+        StartMenu.#itemManager = new StartMenuItemManager(programsContainer, {
+            onApplicationSelected: () => StartMenu.#hideStartMenu(),
+            onListOpened: () => StartMenu.#closePowerOptions()
+        });
 
         StartMenu.#itemManager.render([
             {
@@ -125,28 +143,32 @@ export class StartMenu {
         ]);
     }
 
+    /**
+ * Registra sair, reiniciar e desligar sem alterar suas regras atuais.
+ */
     static #configureSystemActions() {
-        const logoffButton = StartMenu.#startMenu.querySelector(
-            "#start-menu-logoff-button"
-        );
-        const powerButton = StartMenu.#startMenu.querySelector(
-            "#start-menu-power-button"
-        );
-        const restartButton = StartMenu.#startMenu.querySelector(
-            "#restart-button"
-        );
-        const shutdownButton = StartMenu.#startMenu.querySelector(
-            "#shutdown-button"
-        );
+        const logoffButton = StartMenu.#startMenu.querySelector("#start-menu-logoff-button");
+        const powerButton = StartMenu.#startMenu.querySelector("#start-menu-power-button");
+        const restartButton = StartMenu.#startMenu.querySelector("#restart-button");
+        const shutdownButton = StartMenu.#startMenu.querySelector("#shutdown-button");
 
         StartMenu.#powerEntry = StartMenu.#startMenu.querySelector(
             "#start-menu-power-entry"
         );
 
+        if (
+            !(logoffButton instanceof HTMLButtonElement) ||
+            !(powerButton instanceof HTMLButtonElement) ||
+            !(restartButton instanceof HTMLButtonElement) ||
+            !(shutdownButton instanceof HTMLButtonElement) ||
+            !(StartMenu.#powerEntry instanceof HTMLElement)
+        ) {
+            throw new Error("As opções do sistema no menu iniciar estão incompletas.");
+        }
+
         logoffButton.addEventListener("click", async event => {
             event.stopPropagation();
             StartMenu.#hideStartMenu();
-
             Task.getOpenTasks().forEach(task => task.removeTask());
 
             await SessionScreem.getSessionScreem(
@@ -181,6 +203,9 @@ export class StartMenu {
         });
     }
 
+    /**
+     * Abre, fecha e recolhe o menu ao clicar fora ou pressionar Escape.
+     */
     static #configureVisibilityEvents() {
         StartMenu.#startMenuButton.addEventListener("click", event => {
             event.stopPropagation();
@@ -193,6 +218,8 @@ export class StartMenu {
         });
 
         document.addEventListener("click", event => {
+            if (!(event.target instanceof Node)) return;
+
             const clickedOutsideMenu = !StartMenu.#startMenu.contains(event.target);
             const clickedOutsideButton = !StartMenu.#startMenuButton.contains(event.target);
 
@@ -212,18 +239,23 @@ export class StartMenu {
         });
     }
 
+    /** Exibe o menu iniciar. */
     static #showStartMenu() {
         StartMenu.#startMenuVisible = true;
         StartMenu.#startMenu.style.display = "flex";
+        StartMenu.#startMenuButton.setAttribute("aria-expanded", "true");
     }
 
+    /** Oculta o menu e fecha suas listas internas. */
     static #hideStartMenu() {
         StartMenu.#startMenuVisible = false;
         StartMenu.#startMenu.style.display = "none";
+        StartMenu.#startMenuButton.setAttribute("aria-expanded", "false");
         StartMenu.#itemManager?.closeLists();
         StartMenu.#closePowerOptions();
     }
 
+    /** Fecha apenas o submenu de energia. */
     static #closePowerOptions() {
         if (!StartMenu.#powerEntry) return;
 
@@ -233,6 +265,10 @@ export class StartMenu {
             ?.setAttribute("aria-expanded", "false");
     }
 
+
+    /**
+     * Encerra as tarefas, oculta a interface e exibe a tela desligada.
+     */
     static #shutdownSystem() {
         StartMenu.#hideStartMenu();
         Task.getOpenTasks().forEach(task => task.removeTask());

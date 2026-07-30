@@ -1,12 +1,12 @@
 /**
- * Ajusta valores globais para responsividade.
+ * Mantém variáveis CSS sincronizadas com a área realmente visível da tela.
  */
 export class Viewport {
     static #resizeFrame = null;
     static #isConfigured = false;
 
     /**
-     * Configura os listeners que ajustam o as variáveis do tamnaho de tela, para a responsividade do site.
+     * Registra os eventos de redimensionamento apenas uma vez.
      */
     static configure() {
         if (Viewport.#isConfigured) {
@@ -23,7 +23,7 @@ export class Viewport {
     }
 
     /**
-     * Agenda a atualização das variáveis da viewport para o próximo repaint, cancelando qualquer atualização pendente.
+     * Agrupa várias mudanças rápidas em uma única atualização visual.
      */
     static #scheduleUpdate = () => {
         if (Viewport.#resizeFrame !== null) {
@@ -37,7 +37,7 @@ export class Viewport {
     };
 
     /**
-     * Obtem os valores de tamanho da janela atual para injetar nas variáveis globais do CSS
+     * Copia largura, altura e deslocamento da viewport para o CSS global.
      */
     static #updateSize() {
         const visualViewport = window.visualViewport;

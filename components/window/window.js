@@ -26,14 +26,6 @@ export class Window extends Task {
     }
 
     /**
-     * Restaura uma janela minimizada antes de solicitar seu foco.
-     */
-    focusTask() {
-        this.restoreTask();
-        super.focusTask();
-    }
-
-    /**
      * Carrega e mantém em cache o template estrutural da Window.
      *
      * @returns {Promise<string>} HTML do template.
@@ -299,6 +291,7 @@ export class Window extends Task {
         Object.assign(this.#windowElement.style, this.#restorePosition);
 
         this.#restorePosition = null;
+        requestAnimationFrame(() => this.#constrainToContext());
         this.#updateMaximizeButton("Maximizar", "🗖");
         this.focusTask();
     }
@@ -328,6 +321,27 @@ export class Window extends Task {
 
             symbolElement.textContent = symbol;
         }
+    }
+
+    /**
+     * Corrige a posição restaurada quando a viewport ficou menor.
+     */
+    #constrainToContext() {
+        if (!this.#windowElement || !this.#context || this.#isMaximized) return;
+
+        const maximumX = Math.max(
+            0,
+            this.#context.clientWidth - this.#windowElement.offsetWidth
+        );
+        const maximumY = Math.max(
+            0,
+            this.#context.clientHeight - this.#windowElement.offsetHeight
+        );
+        const currentX = Number.parseFloat(this.#windowElement.style.left) || 0;
+        const currentY = Number.parseFloat(this.#windowElement.style.top) || 0;
+
+        this.#windowElement.style.left = `${Math.max(0, Math.min(currentX, maximumX))}px`;
+        this.#windowElement.style.top = `${Math.max(0, Math.min(currentY, maximumY))}px`;
     }
 
     /**

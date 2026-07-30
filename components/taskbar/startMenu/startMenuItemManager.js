@@ -1,19 +1,26 @@
+/**
+ * Cria as listas e os botões de aplicação usados pelo menu iniciar.
+ */
 export class StartMenuItemManager {
     #container = null;
     #openList = null;
     #onApplicationSelected = null;
     #onListOpened = null;
 
+    /**
+     * Recebe o container e as funções chamadas durante a interação.
+     */
     constructor(container, callbacks = {}) {
         if (!(container instanceof HTMLElement)) {
             throw new TypeError("A valid start menu items container is required.");
         }
 
         this.#container = container;
-        this.#onApplicationSelected = callbacks.onApplicationSelected ?? (() => {});
-        this.#onListOpened = callbacks.onListOpened ?? (() => {});
+        this.#onApplicationSelected = callbacks.onApplicationSelected ?? (() => { });
+        this.#onListOpened = callbacks.onListOpened ?? (() => { });
     }
 
+    /** Limpa o container e renderiza a configuração recebida. */
     render(items = []) {
         this.#container.innerHTML = "";
 
@@ -26,6 +33,7 @@ export class StartMenuItemManager {
         });
     }
 
+    /** Fecha a lista atualmente aberta. */
     closeLists() {
         if (!this.#openList) return;
 
@@ -37,6 +45,7 @@ export class StartMenuItemManager {
         this.#openList = null;
     }
 
+    /** Direciona cada configuração para o tipo correto de elemento. */
     #createItem(item) {
         if (item?.type === "list") {
             return this.#createListItem(item);
@@ -49,6 +58,7 @@ export class StartMenuItemManager {
         return null;
     }
 
+    /** Cria uma opção que abre uma lista secundária. */
     #createListItem(item) {
         const entry = document.createElement("section");
         const button = this.#createButton(item, true);
@@ -86,6 +96,7 @@ export class StartMenuItemManager {
         return entry;
     }
 
+    /** Cria uma opção que executa a ação de uma aplicação. */
     #createApplicationItem(item) {
         const button = this.#createButton(item, false);
 
@@ -99,6 +110,7 @@ export class StartMenuItemManager {
         return button;
     }
 
+    /** Monta a parte visual compartilhada por listas e aplicações. */
     #createButton(item, isList) {
         const button = document.createElement("button");
         const icon = document.createElement("img");

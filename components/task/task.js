@@ -1,5 +1,8 @@
 import { DragManager } from "./draggable/draggable.js";
 
+/**
+ * Classe base das janelas e diálogos exibidos como tarefas.
+ */
 export class Task {
     static #context = null;
     static #openTasks = [];
@@ -18,6 +21,7 @@ export class Task {
     #focusHandler = null;
     #closeHandlers = [];
 
+    /** Define o desktop compartilhado e prepara o gerenciador de arraste. */
     constructor(context) {
         if (!Task.#context) {
             if (!(context instanceof HTMLElement)) {
@@ -54,6 +58,7 @@ export class Task {
         return this.#taskMinimized;
     }
 
+    /** Registra um observador para um evento de tarefa. */
     static subscribe(eventName, observer) {
         if (typeof observer !== "function") {
             throw new TypeError("The observer must be a function.");
@@ -68,6 +73,7 @@ export class Task {
         return () => Task.unsubscribe(eventName, observer);
     }
 
+    /** Remove um observador anteriormente registrado. */
     static unsubscribe(eventName, observer) {
         const observers = Task.#observers.get(eventName);
         if (!observers) return;
@@ -79,10 +85,12 @@ export class Task {
         }
     }
 
+    /** Retorna uma cópia da lista de tarefas abertas. */
     static getOpenTasks() {
         return [...Task.#openTasks];
     }
 
+    /** Registra e exibe uma nova tarefa no desktop. */
     openTask(taskElement, closeElements = [], config = {}) {
         if (!(taskElement instanceof HTMLElement) || this.#taskElement) return;
 
@@ -115,15 +123,13 @@ export class Task {
         Task.#notify("task:opened", { task: this });
     }
 
+    /**
+     * Restaura a tarefa, coloca-a acima das demais e marca-a como ativa.
+     */
     focusTask() {
         if (!Task.#openTasks.includes(this) || !this.#taskElement) return;
 
-        if (this.#taskMinimized) {
-            this.#taskMinimized = false;
-            this.#taskElement.hidden = false;
-            delete this.#taskElement.dataset.taskMinimized;
-            Task.#notify("task:restored", { task: this });
-        }
+        this.restoreTask();
 
         if (this.#taskActive) return;
 
@@ -142,7 +148,7 @@ export class Task {
         Task.#notify("task:focused", { task: this });
     }
 
-
+    /** Oculta a tarefa sem removê-la da barra de tarefas. */
     minimizeTask() {
         if (
             !Task.#openTasks.includes(this) ||
@@ -168,6 +174,7 @@ export class Task {
         }
     }
 
+    /** Torna novamente visível uma tarefa minimizada. */
     restoreTask() {
         if (
             !Task.#openTasks.includes(this) ||
@@ -179,12 +186,13 @@ export class Task {
 
         this.#taskMinimized = false;
         this.#taskElement.hidden = false;
-        this.#taskElement.style.display = "flex";
+        this.#taskElement.style.removeProperty("display");
         delete this.#taskElement.dataset.taskMinimized;
 
         Task.#notify("task:restored", { task: this });
     }
 
+    /** Vincula elementos que devem fechar esta tarefa. */
     closeTask(closeElements = []) {
         closeElements
             .filter(element => element instanceof HTMLElement)
@@ -196,6 +204,7 @@ export class Task {
             });
     }
 
+    /** Remove a tarefa, seus eventos e seu elemento visual. */
     removeTask() {
         const taskIndex = Task.#openTasks.indexOf(this);
         if (taskIndex === -1) return;
@@ -224,6 +233,7 @@ export class Task {
         this.#focusHandler = null;
     }
 
+    /** Cria um único gerenciador de arraste para todas as tarefas. */
     static #configureDragManager() {
         if (Task.#dragManager) return;
 
@@ -235,11 +245,13 @@ export class Task {
         });
     }
 
+    /** Localiza e ativa a tarefa associada a um elemento arrastado. */
     static #activateTaskByElement(taskElement) {
         const task = Task.#openTasks.find(item => item.#taskElement === taskElement);
         task?.focusTask();
     }
 
+    /** Ativa a tarefa visível com maior ordem de empilhamento. */
     static #focusHighestTask(excludedTask = null) {
         const availableTasks = Task.#openTasks.filter(task => {
             return task !== excludedTask && !task.#taskMinimized;
@@ -253,6 +265,7 @@ export class Task {
         nextTask.focusTask();
     }
 
+    /** Gera um identificador sequencial para a próxima tarefa. */
     static #getTaskId() {
         const id = `task-${Task.#nextTaskId}`;
         Task.#nextTaskId++;
@@ -260,11 +273,13 @@ export class Task {
         return id;
     }
 
+    /** Envia um evento aos observadores registrados. */
     static #notify(eventName, detail = {}) {
         Task.#observers.get(eventName)?.forEach(observer => observer(detail));
         Task.#observers.get("*")?.forEach(observer => observer({ eventName, ...detail }));
     }
 
+    /** Remove os eventos adicionados aos botões de fechamento. */
     #removeCloseListeners() {
         this.#closeHandlers.forEach(({ element, handler }) => {
             element.removeEventListener("click", handler);

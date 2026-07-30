@@ -6,13 +6,18 @@
     z-index: 8500;
     bottom: var(--taskbar-height);
     left: 0;
+    width: min(var(--start-menu-width), var(--viewport-width));
+    height: min(var(--start-menu-min-height),
+            calc(var(--viewport-height) - var(--taskbar-height)));
+    max-height: calc(var(--viewport-height) - var(--taskbar-height));
     display: flex;
 }
 
 #start-menu-title {
-    background-color: var(--interface-title-background);
+    flex: 0 0 var(--interface-title-height);
     width: var(--interface-title-height);
-    min-height: var(--start-menu-min-height);
+    min-height: 0;
+    height: 100%;
     padding: var(--interface-content-padding);
     writing-mode: sideways-rl;
     text-orientation: upright;
@@ -20,6 +25,8 @@
     display: flex;
     align-items: center;
     gap: var(--interface-content-gap);
+    overflow: hidden;
+    background-color: var(--interface-title-background);
 }
 
 #start-menu-title h3 {
@@ -34,37 +41,45 @@
 }
 
 #start-menu-options-main-container {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
     display: flex;
     flex-direction: column;
 }
 
 #start-menu-programs-container {
-    flex-grow: 1;
+    flex: 1 1 auto;
+    min-height: 0;
 }
 
 .start-menu-options-container {
+    width: 100%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
 }
 
 .start-menu-list-entry {
     position: relative;
+    width: 100%;
 }
 
 .start-menu-option {
     position: relative;
-    cursor: pointer;
+    width: 100%;
+    height: var(--start-menu-option-height);
+    display: flex;
+    align-items: center;
+    gap: var(--interface-content-gap);
+    padding-left: var(--start-menu-option-padding);
     border: 0;
     background: transparent;
     color: inherit;
     font: inherit;
     text-align: left;
-    width: var(--start-menu-option-width);
-    display: flex;
-    align-items: center;
-    padding-left: var(--start-menu-option-padding);
-    gap: var(--interface-content-gap);
-    height: var(--start-menu-option-height);
+    cursor: pointer;
 }
 
 .start-menu-option::after {
@@ -78,7 +93,7 @@
 
 .start-menu-option:hover,
 .start-menu-option:focus-visible,
-.start-menu-list-open > .start-menu-option {
+.start-menu-list-open>.start-menu-option {
     background-color: var(--primary-dark);
     color: var(--text);
     outline: none;
@@ -86,11 +101,17 @@
 
 .start-menu-option-label-img {
     width: var(--start-menu-option-img-width);
+    max-height: calc(var(--start-menu-option-height) - 10px);
+    object-fit: contain;
     flex-shrink: 0;
 }
 
 .start-menu-option-label-txt {
+    min-width: 0;
     padding-left: var(--start-menu-option-padding);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .start-menu-option-label-arrow {
@@ -100,11 +121,14 @@
 
 .start-menu-suboptions,
 .start-menu-shutdown-options {
-    color: var(--text-dark);
     position: absolute;
     left: var(--start-menu-suboptions-right-position);
+    width: min(var(--start-menu-option-width),
+            calc(var(--viewport-width) - var(--start-menu-width)));
+    min-width: 220px;
     display: none;
     z-index: 8600;
+    color: var(--text-dark);
 }
 
 .start-menu-suboptions {
@@ -115,14 +139,15 @@
     bottom: var(--start-menu-suboptions-y-position);
 }
 
-.start-menu-list-open > .start-menu-suboptions,
-.start-menu-list-open > .start-menu-shutdown-options {
+.start-menu-list-open>.start-menu-suboptions,
+.start-menu-list-open>.start-menu-shutdown-options {
     display: block;
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .start-menu-list-entry:hover > .start-menu-suboptions,
-    .start-menu-list-entry:hover > .start-menu-shutdown-options {
+
+    .start-menu-list-entry:hover>.start-menu-suboptions,
+    .start-menu-list-entry:hover>.start-menu-shutdown-options {
         display: block;
     }
 }
@@ -131,19 +156,24 @@
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background-color: #000;
-    color: var(--text);
     display: grid;
     place-content: center;
     justify-items: center;
     gap: var(--interface-content-gap);
+    padding: var(--interface-content-padding);
+    text-align: center;
+    background-color: #000;
+    color: var(--text);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 700px) {
+
     .start-menu-suboptions,
     .start-menu-shutdown-options {
-        top: unset;
+        top: auto;
         bottom: var(--start-menu-option-height);
         left: 0;
+        width: 100%;
+        min-width: 0;
     }
 }
