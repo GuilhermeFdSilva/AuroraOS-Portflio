@@ -59,3 +59,18 @@
         min-height: 0;
     }
 }
+
+.application-window[data-window-maximize-disabled="true"]
+.application-window-maximize {
+    color: var(--text-dark-muted);
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.application-window[data-window-maximize-disabled="true"]
+.application-window-maximize:active {
+    border-left: var(--interface-button-shadow) solid var(--gray-light);
+    border-right: var(--interface-button-shadow) solid var(--gray-dark);
+    border-top: var(--interface-button-shadow) solid var(--gray-light);
+    border-bottom: var(--interface-button-shadow) solid var(--gray-dark);
+}

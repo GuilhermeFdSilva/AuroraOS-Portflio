@@ -9,6 +9,7 @@ export class Window extends Task {
     #context = null;
     #windowElement = null;
     #maximizeButton = null;
+    #canMaximize = true;
     #isMaximized = false;
     #restorePosition = null;
 
@@ -61,6 +62,7 @@ export class Window extends Task {
             contentSrc = "",
             width = "",
             height = "",
+            canMaximize = true,
             startMaximized = false,
             onContentLoaded = null
         } = config;
@@ -77,6 +79,7 @@ export class Window extends Task {
         }
 
         this.#windowElement = windowElement;
+        this.#canMaximize = canMaximize;
         this.#maximizeButton = windowElement.querySelector(
             ".application-window-maximize"
         );
@@ -123,10 +126,11 @@ export class Window extends Task {
             }
         });
 
+        this.#configureMaximizeAvailability();
         this.#configureControls(minimizeButton, this.#maximizeButton);
         this.#centerWindow();
 
-        if (startMaximized) {
+        if (startMaximized && this.#canMaximize) {
             this.#maximizeWindow();
         }
     }
@@ -221,6 +225,28 @@ export class Window extends Task {
     }
 
     /**
+     * Ativa ou bloqueia a maximização conforme a configuração da aplicação.
+     */
+    #configureMaximizeAvailability() {
+        if (!this.#maximizeButton) return;
+
+        if (this.#canMaximize) {
+            this.#maximizeButton.disabled = false;
+            this.#maximizeButton.removeAttribute("aria-disabled");
+            return;
+        }
+
+        this.#maximizeButton.disabled = true;
+        this.#maximizeButton.setAttribute("aria-disabled", "true");
+        this.#maximizeButton.title = "Maximização indisponível";
+        this.#maximizeButton.setAttribute(
+            "aria-label",
+            "Maximização indisponível"
+        );
+        this.#windowElement.dataset.windowMaximizeDisabled = "true";
+    }
+
+    /**
      * Configura os eventos dos botões exclusivos da Window.
      *
      * @param {HTMLElement|null} minimizeButton Botão de minimizar.
@@ -232,16 +258,20 @@ export class Window extends Task {
             this.minimizeTask();
         });
 
-        maximizeButton?.addEventListener("click", event => {
-            event.stopPropagation();
-            this.#toggleMaximize();
-        });
+        if (this.#canMaximize) {
+            maximizeButton?.addEventListener("click", event => {
+                event.stopPropagation();
+                this.#toggleMaximize();
+            });
+        }
     }
 
     /**
      * Alterna entre o tamanho normal e o tamanho máximo da janela.
      */
     #toggleMaximize() {
+        if (!this.#canMaximize) return;
+
         if (this.#isMaximized) {
             this.#restoreWindowSize();
             return;
@@ -254,8 +284,12 @@ export class Window extends Task {
      * Salva a posição atual e ocupa toda a área disponível do desktop.
      */
     #maximizeWindow() {
-        if (!this.#windowElement || this.#isMaximized) return;
-
+        if (
+            !this.#canMaximize ||
+            !this.#windowElement ||
+            this.#isMaximized
+        ) return;
+        
         this.#restorePosition = {
             left: this.#windowElement.style.left,
             top: this.#windowElement.style.top,

@@ -1,6 +1,167 @@
-<section>
-    <article>
-    </article>
-    <article>
-    </article>
+<section class="calculator-container">
+    <div class="calculator-display-container">
+        <div class="calculator-display interface-input">
+            <output id="calculator-operation" class="calculator-operation" aria-label="Operação atual"></output>
+
+            <output id="calculator-result" class="calculator-result" aria-label="Resultado" aria-live="polite"
+                aria-atomic="true">
+                0
+            </output>
+        </div>
+    </div>
+
+    <div class="calculator-controls">
+        <div class="calculator-memory-column">
+            <output class="calculator-memory-indicator interface-input" aria-label="Indicador de memória" aria-live="polite"></output>
+
+            <button type="button" class="interface-button calculator-button calculator-memory-button"
+                data-calculator-action="memory-clear" aria-label="Limpar memória">
+                MC
+            </button>
+
+            <button type="button" class="interface-button calculator-button calculator-memory-button"
+                data-calculator-action="memory-recall" aria-label="Recuperar valor da memória">
+                MR
+            </button>
+
+            <button type="button" class="interface-button calculator-button calculator-memory-button"
+                data-calculator-action="memory-store" aria-label="Salvar valor na memória">
+                MS
+            </button>
+
+            <button type="button" class="interface-button calculator-button calculator-memory-button"
+                data-calculator-action="memory-add" aria-label="Somar valor à memória">
+                M+
+            </button>
+        </div>
+
+        <div class="calculator-main-controls">
+            <div class="calculator-clear-row">
+                <button type="button"
+                    class="interface-button calculator-button calculator-clear-button calculator-backspace-button"
+                    data-calculator-action="backspace" aria-label="Apagar último dígito">
+                    Backspace
+                </button>
+
+                <button type="button" class="interface-button calculator-button calculator-clear-button"
+                    data-calculator-action="clear-entry" aria-label="Limpar número atual">
+                    CE
+                </button>
+
+                <button type="button" class="interface-button calculator-button calculator-clear-button"
+                    data-calculator-action="clear-all" aria-label="Limpar toda a operação">
+                    C
+                </button>
+            </div>
+
+            <div class="calculator-keypad">
+                <div class="calculator-number-grid">
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="7">
+                        7
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="8">
+                        8
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="9">
+                        9
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="4">
+                        4
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="5">
+                        5
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="6">
+                        6
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="1">
+                        1
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="2">
+                        2
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="3">
+                        3
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-number-button"
+                        data-calculator-action="input-number" data-calculator-value="0">
+                        0
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-utility-button"
+                        data-calculator-action="toggle-sign" aria-label="Inverter sinal">
+                        ±
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-decimal-button"
+                        data-calculator-action="input-decimal" aria-label="Adicionar separador decimal">
+                        ,
+                    </button>
+                </div>
+
+                <div class="calculator-operation-grid">
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="select-operation" data-calculator-operation="divide"
+                        aria-label="Dividir">
+                        /
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button calculator-sqrt"
+                        data-calculator-action="square-root" aria-label="Calcular raiz quadrada">
+                        &radic;
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="select-operation" data-calculator-operation="multiply"
+                        aria-label="Multiplicar">
+                        x
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="percentage" aria-label="Calcular porcentagem">
+                        %
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="select-operation" data-calculator-operation="subtract"
+                        aria-label="Subtrair">
+                        -
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="reciprocal" aria-label="Calcular o inverso do número">
+                        /x
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-operator-button"
+                        data-calculator-action="select-operation" data-calculator-operation="add" aria-label="Somar">
+                        +
+                    </button>
+
+                    <button type="button" class="interface-button calculator-button calculator-equals-button"
+                        data-calculator-action="calculate" aria-label="Calcular resultado">
+                        =
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>

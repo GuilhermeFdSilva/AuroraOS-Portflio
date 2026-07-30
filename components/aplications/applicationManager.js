@@ -22,6 +22,9 @@ export class ApplicationManager {
                 title: "Calculadora",
                 iconSrc: "./assets/calculadora.png",
                 iconAlt: "Calculadora",
+                width: "fit-content",
+                height: "fit-content",
+                canMaximize: false,
                 contentSrc:
                     "./components/aplications/calculator/calculator.html",
                 moduleSrc: "./calculator/calculator.js",
