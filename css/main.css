@@ -12,6 +12,7 @@
 @import '../components/aplications/resume/resume.css';
 @import '../components/aplications/calculator/calculator.css';
 @import '../components/aplications/notepad/notepad.css';
+@import '../components/aplications/projects/projects.css';
 
 * {
   margin: 0;

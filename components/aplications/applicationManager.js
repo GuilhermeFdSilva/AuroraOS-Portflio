@@ -52,7 +52,10 @@ export class ApplicationManager {
                 title: "Projetos",
                 iconSrc: "./assets/docs.png",
                 iconAlt: "Projetos",
-                contentSrc: "./components/window/content/wip.html"
+                contentSrc: "./components/aplications/projects/projects.html",
+                moduleSrc: "./projects/projects.js",
+                exportName: "Projects",
+                startMaximized: true
             }
         ]
     ]);

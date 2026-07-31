@@ -1,0 +1,28 @@
+<section class="projects-app" aria-label="Explorador de projetos">
+    <aside class="projects-sidebar interface-field" aria-label="Lista de projetos">
+        <header class="projects-sidebar-header">
+            <strong>Projetos</strong>
+            <span id="projects-count">0 itens</span>
+        </header>
+        <nav id="projects-list" class="projects-list" aria-label="Arquivos de projeto"></nav>
+    </aside>
+
+    <main class="projects-viewer interface-field">
+        <section id="projects-empty-state" class="projects-message">
+            <p>Selecione um projeto para abrir o README.</p>
+        </section>
+
+        <section id="projects-document" class="projects-document" hidden>
+            <header class="projects-document-header">
+                <section>
+                    <h2 id="projects-document-title"></h2>
+                    <p id="projects-document-description"></p>
+                </section>
+                <a id="projects-repository-link" class="interface-button interface-window-button projects-repository-link" target="_blank" rel="noopener noreferrer">
+                    <p>Abrir repositório</p>
+                </a>
+            </header>
+            <article id="projects-readme" class="projects-readme"></article>
+        </section>
+    </main>
+</section>
