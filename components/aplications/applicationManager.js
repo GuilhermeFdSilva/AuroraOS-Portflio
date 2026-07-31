@@ -13,7 +13,9 @@ export class ApplicationManager {
                 title: "Bloco de notas",
                 iconSrc: "./assets/bloco_de_notas.png",
                 iconAlt: "Bloco de notas",
-                contentSrc: "./components/window/content/wip.html"
+                contentSrc: "./components/aplications/notepad/notepad.html",
+                moduleSrc: "./notepad/notepad.js",
+                exportName: "Notepad"
             }
         ],
         [
