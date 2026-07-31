@@ -1,6 +1,7 @@
 .calculator-container {
-    width: 100%;
+    width: 340px;
     min-width: 0;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: var(--interface-content-gap);
@@ -141,7 +142,15 @@
     color: #000080;
 }
 
+.calculator-reciprocal {
+    font-size: var(--font-size-small);
+}
+
 @media (max-width: 420px) {
+
+    .calculator-container {
+        width: 300px;
+    }
 
     .calculator-memory-column {
         width: 36px;
