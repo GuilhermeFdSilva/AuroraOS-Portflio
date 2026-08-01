@@ -1,18 +1,15 @@
 /**
  * Integra o js-dos ao AuroraOS sem adicionar o runtime ao carregamento inicial.
- * O runtime e o bundle do jogo são requisitados apenas quando o app é aberto.
+ *
+ * O emulador é carregado dentro de um iframe da própria aplicação. Essa
+ * separação impede que o CSS externo do js-dos altere cores, fontes ou outros
+ * estilos globais do AuroraOS.
  */
 export class Doom {
     static #runtimeScriptUrl = "https://v8.js-dos.com/latest/js-dos.js";
     static #runtimeStyleUrl = "https://v8.js-dos.com/latest/js-dos.css";
     static #emulatorPath = "https://v8.js-dos.com/latest/emulators/";
-    static #localBundleUrl =
-        "./components/aplications/doom/doom.jsdos";
-    static #fallbackBundleUrl =
-        "https://v8.js-dos.com/bundles/doom.jsdos";
-
-    static #runtimePromise = null;
-    static #stylePromise = null;
+    static #bundleUrl = "https://v8.js-dos.com/bundles/doom.jsdos";
 
     /**
      * Inicializa o emulador dentro do conteúdo da Window.
@@ -47,29 +44,20 @@ export class Doom {
                 "Carregando o emulador somente para esta aplicação..."
             );
 
-            const [, , bundleUrl] = await Promise.all([
-                Doom.#loadRuntimeStyle(),
-                Doom.#loadRuntimeScript(),
-                Doom.#resolveBundleUrl()
-            ]);
+            const runtime = await Doom.#createIsolatedRuntime(playerElement);
 
             if (!container.isConnected) {
+                runtime.frame.remove();
                 return;
-            }
-
-            if (typeof window.Dos !== "function") {
-                throw new Error("A API do js-dos não foi disponibilizada.");
             }
 
             Doom.#setStatus(
                 statusMessage,
-                bundleUrl === Doom.#localBundleUrl
-                    ? "Emulador pronto. Abrindo o DOOM local..."
-                    : "Emulador pronto. Baixando os arquivos do DOOM..."
+                "Emulador pronto. Baixando os arquivos do DOOM..."
             );
 
-            const dos = window.Dos(playerElement, {
-                url: bundleUrl,
+            const dos = runtime.frameWindow.Dos(runtime.mountElement, {
+                url: Doom.#bundleUrl,
                 pathPrefix: Doom.#emulatorPath,
                 autoStart: true,
                 backend: "dosbox",
@@ -97,7 +85,7 @@ export class Doom {
             });
 
             dos.setNoCloud?.(true);
-            Doom.#observeLifecycle(container, dos);
+            Doom.#observeLifecycle(container, dos, runtime.frame);
         } catch (error) {
             console.error("Não foi possível iniciar o DOOM.", error);
             Doom.#showError(statusElement, statusMessage);
@@ -105,47 +93,107 @@ export class Doom {
     }
 
     /**
-     * Usa o bundle local quando ele existir e mantém o CDN como fallback.
-     * A requisição HEAD só ocorre depois que o usuário abre a aplicação.
+     * Cria um documento isolado para o js-dos.
+     *
+     * O stylesheet do emulador possui regras globais. Ao carregá-lo dentro de
+     * um iframe, essas regras ficam restritas ao jogo e não mudam a aparência
+     * do portfólio.
+     *
+     * @param {HTMLDivElement} playerElement Área reservada para o jogo.
+     * @returns {Promise<{
+     *   frame: HTMLIFrameElement,
+     *   frameWindow: Window,
+     *   mountElement: HTMLDivElement
+     * }>}
      */
-    static async #resolveBundleUrl() {
-        try {
-            const response = await fetch(Doom.#localBundleUrl, {
-                method: "HEAD",
-                cache: "no-store"
-            });
+    static async #createIsolatedRuntime(playerElement) {
+        const frame = document.createElement("iframe");
 
-            if (response.ok) {
-                return Doom.#localBundleUrl;
-            }
-        } catch {
-            // GitHub Pages retorna 404 quando o bundle local não foi adicionado.
+        frame.className = "doom-runtime-frame";
+        frame.title = "DOOM executado pelo js-dos";
+        frame.setAttribute("allow", "autoplay; fullscreen; gamepad");
+        frame.setAttribute("aria-label", "Tela do jogo DOOM");
+
+        const frameReady = new Promise((resolve, reject) => {
+            frame.addEventListener("load", resolve, { once: true });
+            frame.addEventListener(
+                "error",
+                () => reject(new Error("Falha ao criar a tela isolada do DOOM.")),
+                { once: true }
+            );
+        });
+
+        frame.srcdoc = `<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html, body, #dos-root {
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            margin: 0;
+            overflow: hidden;
+            background: #000;
         }
 
-        return Doom.#fallbackBundleUrl;
+        * {
+            box-sizing: border-box;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <div id="dos-root"></div>
+</body>
+</html>`;
+
+        playerElement.replaceChildren(frame);
+        await frameReady;
+
+        const frameDocument = frame.contentDocument;
+        const frameWindow = frame.contentWindow;
+
+        if (!frameDocument || !frameWindow) {
+            throw new Error("Não foi possível acessar a tela isolada do DOOM.");
+        }
+
+        const mountElement = frameDocument.querySelector("#dos-root");
+
+        if (!(mountElement instanceof frameWindow.HTMLDivElement)) {
+            throw new Error("A área interna do emulador não foi criada.");
+        }
+
+        await Promise.all([
+            Doom.#loadStyle(frameDocument),
+            Doom.#loadScript(frameDocument)
+        ]);
+
+        if (typeof frameWindow.Dos !== "function") {
+            throw new Error("A API do js-dos não foi disponibilizada.");
+        }
+
+        return {
+            frame,
+            frameWindow,
+            mountElement
+        };
     }
 
-    /** Carrega a folha de estilos do js-dos apenas uma vez. */
-    static #loadRuntimeStyle() {
-        if (Doom.#stylePromise) {
-            return Doom.#stylePromise;
-        }
-
-        const existingLink = document.querySelector(
-            'link[data-doom-runtime-style="true"]'
-        );
-
-        if (existingLink instanceof HTMLLinkElement) {
-            Doom.#stylePromise = Promise.resolve();
-            return Doom.#stylePromise;
-        }
-
-        Doom.#stylePromise = new Promise((resolve, reject) => {
-            const link = document.createElement("link");
+    /** Carrega o CSS do js-dos apenas dentro do iframe do jogo. */
+    static #loadStyle(frameDocument) {
+        return new Promise((resolve, reject) => {
+            const link = frameDocument.createElement("link");
 
             link.rel = "stylesheet";
             link.href = Doom.#runtimeStyleUrl;
-            link.dataset.doomRuntimeStyle = "true";
             link.addEventListener("load", resolve, { once: true });
             link.addEventListener(
                 "error",
@@ -153,49 +201,17 @@ export class Doom {
                 { once: true }
             );
 
-            document.head.appendChild(link);
-        }).catch(error => {
-            Doom.#stylePromise = null;
-            throw error;
+            frameDocument.head.appendChild(link);
         });
-
-        return Doom.#stylePromise;
     }
 
-    /** Carrega o JavaScript do js-dos apenas uma vez. */
-    static #loadRuntimeScript() {
-        if (typeof window.Dos === "function") {
-            return Promise.resolve();
-        }
-
-        if (Doom.#runtimePromise) {
-            return Doom.#runtimePromise;
-        }
-
-        const existingScript = document.querySelector(
-            'script[data-doom-runtime-script="true"]'
-        );
-
-        if (existingScript instanceof HTMLScriptElement) {
-            Doom.#runtimePromise = new Promise((resolve, reject) => {
-                if (typeof window.Dos === "function") {
-                    resolve();
-                    return;
-                }
-
-                existingScript.addEventListener("load", resolve, { once: true });
-                existingScript.addEventListener("error", reject, { once: true });
-            });
-
-            return Doom.#runtimePromise;
-        }
-
-        Doom.#runtimePromise = new Promise((resolve, reject) => {
-            const script = document.createElement("script");
+    /** Carrega o JavaScript do js-dos apenas dentro do iframe do jogo. */
+    static #loadScript(frameDocument) {
+        return new Promise((resolve, reject) => {
+            const script = frameDocument.createElement("script");
 
             script.src = Doom.#runtimeScriptUrl;
             script.async = true;
-            script.dataset.doomRuntimeScript = "true";
             script.addEventListener("load", resolve, { once: true });
             script.addEventListener(
                 "error",
@@ -203,13 +219,8 @@ export class Doom {
                 { once: true }
             );
 
-            document.head.appendChild(script);
-        }).catch(error => {
-            Doom.#runtimePromise = null;
-            throw error;
+            frameDocument.head.appendChild(script);
         });
-
-        return Doom.#runtimePromise;
     }
 
     /** Atualiza a tela de carregamento conforme os eventos do emulador. */
@@ -235,7 +246,7 @@ export class Doom {
     /**
      * Pausa a emulação ao minimizar e libera os recursos ao fechar a Window.
      */
-    static #observeLifecycle(container, dos) {
+    static #observeLifecycle(container, dos, frame) {
         const windowElement = container.closest(".application-window");
         const desktopElement = windowElement?.parentElement;
         let disposed = false;
@@ -247,9 +258,13 @@ export class Doom {
             disposed = true;
             observer?.disconnect();
 
-            Promise.resolve(dos.stop?.()).catch(error => {
-                console.warn("Não foi possível encerrar o emulador.", error);
-            });
+            Promise.resolve(dos.stop?.())
+                .catch(error => {
+                    console.warn("Não foi possível encerrar o emulador.", error);
+                })
+                .finally(() => {
+                    frame.remove();
+                });
         };
 
         const updatePauseState = () => {
