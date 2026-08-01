@@ -111,6 +111,15 @@ export class StartMenu {
                         action: () => ApplicationManager.open(
                             "calculator"
                         )
+                    },
+                    {
+                        type: "application",
+                        label: "DOOM",
+                        iconSrc: "assets/DOOM.png",
+                        iconAlt: "DOOM",
+                        action: () => ApplicationManager.open(
+                            "doom"
+                        )
                     }
                 ]
             },

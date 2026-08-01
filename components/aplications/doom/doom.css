@@ -1,0 +1,91 @@
+@import '../../../css/main/root.css';
+
+.application-window-content.doom-window-content {
+    padding: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+.doom-app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    background: #000;
+}
+
+.doom-player,
+.doom-player > div {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.doom-player {
+    display: grid;
+    place-items: stretch;
+    background: #000;
+    outline: none;
+}
+
+.doom-player canvas {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+}
+
+.doom-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: calc(var(--interface-content-gap) * 2);
+    padding: calc(var(--interface-content-padding) * 2);
+    text-align: center;
+    color: #f5f5f5;
+    background:
+        radial-gradient(circle at center, rgb(88 15 8 / 55%), transparent 52%),
+        #050505;
+}
+
+.doom-loading[hidden] {
+    display: none;
+}
+
+.doom-loading-icon {
+    width: clamp(72px, 12vw, 140px);
+    height: clamp(72px, 12vw, 140px);
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.doom-loading-title {
+    font-size: clamp(18px, 3vw, 28px);
+    font-weight: bold;
+    color: #f0b13e;
+}
+
+.doom-loading-message {
+    max-width: 520px;
+    color: #e4e4e4;
+    line-height: 1.5;
+}
+
+.doom-loading-progress {
+    width: min(320px, 80vw);
+    height: 14px;
+    accent-color: #a42217;
+}
+
+.doom-loading[data-doom-error="true"] .doom-loading-progress {
+    display: none;
+}
+
+.doom-loading[data-doom-error="true"] .doom-loading-title {
+    color: #ff7469;
+}

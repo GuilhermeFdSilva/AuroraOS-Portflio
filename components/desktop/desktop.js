@@ -36,6 +36,13 @@ export class Desktop {
                 iconSrc: "./assets/docs.png",
                 iconAlt: "Projetos",
                 action: () => ApplicationManager.open("projects")
+            },
+            {
+                id: "doom",
+                label: "DOOM",
+                iconSrc: "./assets/DOOM.png",
+                iconAlt: "DOOM",
+                action: () => ApplicationManager.open("doom")
             }
         ]
     };

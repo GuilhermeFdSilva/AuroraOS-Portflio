@@ -13,6 +13,7 @@
 @import '../components/aplications/calculator/calculator.css';
 @import '../components/aplications/notepad/notepad.css';
 @import '../components/aplications/projects/projects.css';
+@import '../components/aplications/doom/doom.css';
 
 * {
   margin: 0;

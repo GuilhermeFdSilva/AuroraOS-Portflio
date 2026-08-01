@@ -10,7 +10,9 @@ Portfólio pessoal que simula um sistema operacional retrô usando somente HTML,
 - janelas com foco, arraste, minimizar, maximizar, restaurar e fechar;
 - barra de tarefas, menu iniciar, relógio e calendário;
 - visualizador responsivo do currículo, impressão e download do PDF;
+- calculadora com funções implementadas;
 - bloco de notas com salvamento local e contadores de texto;
+- DOOM carregado sob demanda em uma janela maximizada e bloqueado em dispositivos móveis;
 - telas provisórias para aplicações ainda não concluídas.
 
 ## Como executar

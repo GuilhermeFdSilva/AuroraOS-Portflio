@@ -1,4 +1,5 @@
 import { Window } from "../window/window.js";
+import { Dialog } from "../dialog/dialog.js";
 
 /**
  * Centraliza a abertura das aplicações e carrega seus módulos sob demanda.
@@ -57,6 +58,21 @@ export class ApplicationManager {
                 exportName: "Projects",
                 startMaximized: true
             }
+        ],
+        [
+            "doom",
+            {
+                title: "DOOM",
+                iconSrc: "./assets/DOOM.png",
+                iconAlt: "DOOM",
+                contentSrc: "./components/aplications/doom/doom.html",
+                moduleSrc: "./doom/doom.js",
+                exportName: "Doom",
+                startMaximized: true,
+                lockMaximized: true,
+                desktopOnly: true,
+                singleInstance: true
+            }
         ]
     ]);
 
@@ -80,7 +96,7 @@ export class ApplicationManager {
      *
      * @param {string} applicationId Identificador da aplicação.
      * @param {object} overrides Ajustes opcionais da Window.
-     * @returns {Window} Janela criada.
+     * @returns {Window|Dialog|import("../task/task.js").Task} Tarefa criada ou recuperada.
      */
     static open(applicationId, overrides = {}) {
         if (!(ApplicationManager.#context instanceof HTMLElement)) {
@@ -101,8 +117,31 @@ export class ApplicationManager {
         const {
             moduleSrc,
             exportName,
+            desktopOnly = false,
+            singleInstance = false,
             ...windowConfig
         } = application;
+
+        if (desktopOnly && ApplicationManager.#isMobileDevice()) {
+            return new Dialog(ApplicationManager.#context, {
+                title: `${windowConfig.title} indisponível`,
+                message:
+                    "Esta versão do jogo foi preparada apenas para computadores. Abra o portfólio em um desktop ou notebook para jogar.",
+                iconSrc: "./assets/alert.png",
+                iconAlt: "Alerta"
+            });
+        }
+
+        if (singleInstance) {
+            const openApplication = Window.getOpenTasks().find(
+                task => task.taskTitle === windowConfig.title
+            );
+
+            if (openApplication) {
+                openApplication.focusTask();
+                return openApplication;
+            }
+        }
 
         const onContentLoaded = moduleSrc
             ? container =>
@@ -118,6 +157,32 @@ export class ApplicationManager {
             ...overrides,
             onContentLoaded
         });
+    }
+
+    /**
+     * Identifica celulares e tablets antes de criar aplicações incompatíveis.
+     * Mantém notebooks com tela sensível ao toque fora do bloqueio sempre que
+     * o navegador informa explicitamente que o dispositivo não é mobile.
+     *
+     * @returns {boolean} Verdadeiro quando a interface é de um dispositivo móvel.
+     */
+    static #isMobileDevice() {
+        if (navigator.userAgentData?.mobile === true) {
+            return true;
+        }
+
+        const mobileUserAgent = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i;
+        const isIPadDesktopMode =
+            navigator.platform === "MacIntel" &&
+            navigator.maxTouchPoints > 1;
+
+        if (mobileUserAgent.test(navigator.userAgent) || isIPadDesktopMode) {
+            return true;
+        }
+
+        return window.matchMedia(
+            "(max-width: 900px) and (pointer: coarse)"
+        ).matches;
     }
 
     /**

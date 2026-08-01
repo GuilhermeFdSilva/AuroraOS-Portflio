@@ -10,6 +10,7 @@ export class Window extends Task {
     #windowElement = null;
     #maximizeButton = null;
     #canMaximize = true;
+    #lockMaximized = false;
     #isMaximized = false;
     #restorePosition = null;
 
@@ -64,6 +65,7 @@ export class Window extends Task {
             height = "",
             canMaximize = true,
             startMaximized = false,
+            lockMaximized = false,
             onContentLoaded = null
         } = config;
 
@@ -79,7 +81,8 @@ export class Window extends Task {
         }
 
         this.#windowElement = windowElement;
-        this.#canMaximize = canMaximize;
+        this.#lockMaximized = Boolean(lockMaximized);
+        this.#canMaximize = Boolean(canMaximize) || this.#lockMaximized;
         this.#maximizeButton = windowElement.querySelector(
             ".application-window-maximize"
         );
@@ -96,20 +99,6 @@ export class Window extends Task {
             windowElement,
             contentSrc
         );
-
-        if (
-            contentElement &&
-            typeof onContentLoaded === "function"
-        ) {
-            try {
-                await onContentLoaded(contentElement);
-            } catch (error) {
-                console.error(
-                    `Não foi possível inicializar a aplicação "${title}".`,
-                    error
-                );
-            }
-        }
 
         const closeButton = windowElement.querySelector(
             ".application-window-close"
@@ -130,8 +119,26 @@ export class Window extends Task {
         this.#configureControls(minimizeButton, this.#maximizeButton);
         this.#centerWindow();
 
-        if (startMaximized && this.#canMaximize) {
+        if ((startMaximized || this.#lockMaximized) && this.#canMaximize) {
             this.#maximizeWindow();
+        }
+
+        if (this.#lockMaximized) {
+            this.#lockMaximizedWindow();
+        }
+
+        if (
+            contentElement &&
+            typeof onContentLoaded === "function"
+        ) {
+            try {
+                await onContentLoaded(contentElement);
+            } catch (error) {
+                console.error(
+                    `Não foi possível inicializar a aplicação "${title}".`,
+                    error
+                );
+            }
         }
     }
 
@@ -236,14 +243,40 @@ export class Window extends Task {
             return;
         }
 
+        this.#disableMaximizeButton(
+            "Maximização indisponível",
+            "windowMaximizeDisabled"
+        );
+    }
+
+    /**
+     * Impede que uma aplicação maximizada volte ao tamanho normal.
+     * A janela continua podendo ser minimizada e fechada.
+     */
+    #lockMaximizedWindow() {
+        if (!this.#windowElement || !this.#maximizeButton) return;
+
+        this.#lockMaximized = true;
+        this.#disableMaximizeButton(
+            "Janela bloqueada no modo maximizado",
+            "windowMaximizeLocked"
+        );
+    }
+
+    /**
+     * Desativa o botão de maximização e registra o motivo no elemento.
+     *
+     * @param {string} label Texto acessível e tooltip do botão.
+     * @param {string} datasetKey Chave adicionada ao dataset da janela.
+     */
+    #disableMaximizeButton(label, datasetKey) {
+        if (!this.#maximizeButton || !this.#windowElement) return;
+
         this.#maximizeButton.disabled = true;
         this.#maximizeButton.setAttribute("aria-disabled", "true");
-        this.#maximizeButton.title = "Maximização indisponível";
-        this.#maximizeButton.setAttribute(
-            "aria-label",
-            "Maximização indisponível"
-        );
-        this.#windowElement.dataset.windowMaximizeDisabled = "true";
+        this.#maximizeButton.title = label;
+        this.#maximizeButton.setAttribute("aria-label", label);
+        this.#windowElement.dataset[datasetKey] = "true";
     }
 
     /**
@@ -258,7 +291,7 @@ export class Window extends Task {
             this.minimizeTask();
         });
 
-        if (this.#canMaximize) {
+        if (this.#canMaximize && !this.#lockMaximized) {
             maximizeButton?.addEventListener("click", event => {
                 event.stopPropagation();
                 this.#toggleMaximize();
@@ -270,7 +303,7 @@ export class Window extends Task {
      * Alterna entre o tamanho normal e o tamanho máximo da janela.
      */
     #toggleMaximize() {
-        if (!this.#canMaximize) return;
+        if (!this.#canMaximize || this.#lockMaximized) return;
 
         if (this.#isMaximized) {
             this.#restoreWindowSize();
@@ -314,7 +347,8 @@ export class Window extends Task {
         if (
             !this.#windowElement ||
             !this.#isMaximized ||
-            !this.#restorePosition
+            !this.#restorePosition ||
+            this.#lockMaximized
         ) {
             return;
         }
